@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "বাকি খাতা",
+    "slug": "baki-khata",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#D32F2F",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "গ্রাহকের ছবি যোগ করতে অনুমতি প্রয়োজন",
+          "cameraPermission": "গ্রাহকের ছবি তুলতে অনুমতি প্রয়োজন"
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "ভয়েস নোট রেকর্ড করতে মাইক্রোফোন অ্যাক্সেস প্রয়োজন"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "baki-khata"
+      }
+    }
+  }
+}
