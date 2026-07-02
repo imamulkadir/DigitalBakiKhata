@@ -20,8 +20,10 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.POST_NOTIFICATIONS"
-      ]
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.imamulkadir.bakikhata"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -53,8 +55,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "baki-khata"
+        "projectId": "d6a172c5-0b69-49c6-8ffb-57f000faeece"
       }
-    }
+    },
+    "owner": "imamulkadir"
   }
 }
