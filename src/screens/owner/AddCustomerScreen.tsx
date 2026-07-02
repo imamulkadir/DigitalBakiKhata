@@ -10,12 +10,9 @@ import VoiceRecorder from '../../components/VoiceRecorder';
 import { useCustomers } from '../../hooks/useCustomers';
 import { supabase } from '../../lib/supabase';
 import { uploadFile } from '../../utils/uploadFile';
+import { useTranslation } from '../../i18n/LanguageContext';
+import { formatNumber } from '../../utils/currencyFormat';
 import type { Profile } from '../../hooks/useAuth';
-
-const BN = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
-function toBnNum(n: number): string {
-  return String(n).replace(/\d/g, (d) => BN[parseInt(d)]);
-}
 
 type Props = {
   navigation: NativeStackNavigationProp<OwnerStackParamList, 'AddCustomer'>;
@@ -23,6 +20,7 @@ type Props = {
 };
 
 export default function AddCustomerScreen({ navigation, profile }: Props) {
+  const { t } = useTranslation();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [voiceUri, setVoiceUri] = useState<string | null>(null);
   const [customerPhone, setCustomerPhone] = useState('');
@@ -41,7 +39,7 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
   async function pickPhoto() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('অনুমতি প্রয়োজন', 'ক্যামেরা ব্যবহারের অনুমতি দিন');
+      Alert.alert(t('addCustomer.cameraPermissionTitle'), t('addCustomer.cameraPermissionMessage'));
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -80,7 +78,7 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
       }
 
       const nextNum = (customerCount ?? 0) + 1;
-      const fallback_label = `গ্রাহক ${toBnNum(nextNum)}`;
+      const fallback_label = `${t('addCustomer.autoNamePrefix')} ${formatNumber(nextNum)}`;
 
       await addCustomer({
         photo_url,
@@ -90,7 +88,7 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e.message ?? 'গ্রাহক সংরক্ষণ করতে সমস্যা হয়েছে');
+      Alert.alert(t('common.error'), e.message ?? t('addCustomer.saveError'));
     } finally {
       setSaving(false);
     }
@@ -98,7 +96,7 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.heading}>নতুন গ্রাহক</Text>
+      <Text style={styles.heading}>{t('addCustomer.heading')}</Text>
 
       {/* Photo capture */}
       <TouchableOpacity style={styles.photoTarget} onPress={pickPhoto} activeOpacity={0.8}>
@@ -107,20 +105,20 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
         ) : (
           <View style={styles.photoPlaceholder}>
             <Text style={styles.cameraIcon}>📷</Text>
-            <Text style={styles.photoHint}>গ্রাহকের ছবি তুলতে চাপ দিন</Text>
+            <Text style={styles.photoHint}>{t('addCustomer.photoHint')}</Text>
           </View>
         )}
       </TouchableOpacity>
 
       {/* Voice tag */}
       <View style={styles.section}>
-        <VoiceRecorder onRecorded={setVoiceUri} existingUri={voiceUri} label="নাম বলুন" />
+        <VoiceRecorder onRecorded={setVoiceUri} existingUri={voiceUri} label={t('addCustomer.recordName')} />
       </View>
 
       {/* Optional phone number */}
       <TextInput
         style={styles.input}
-        placeholder="গ্রাহকের ফোন নম্বর (ঐচ্ছিক)"
+        placeholder={t('addCustomer.phonePlaceholder')}
         keyboardType="phone-pad"
         value={customerPhone}
         onChangeText={setCustomerPhone}
@@ -129,12 +127,12 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
 
       {!photoUri && !voiceUri && customerCount !== null && (
         <Text style={styles.hint}>
-          ছবি বা ভয়েস ট্যাগ না দিলে স্বয়ংক্রিয় নাম ("গ্রাহক {toBnNum(customerCount + 1)}") ব্যবহার করা হবে
+          {t('addCustomer.autoNameHint', { n: formatNumber(customerCount + 1) })}
         </Text>
       )}
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
-        {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>গ্রাহক সংরক্ষণ করুন</Text>}
+        {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('addCustomer.submit')}</Text>}
       </TouchableOpacity>
     </ScrollView>
   );

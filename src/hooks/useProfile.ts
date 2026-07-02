@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/LanguageContext';
 import type { Profile } from './useAuth';
 
 export function useProfile(profile: Profile) {
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,11 +23,11 @@ export function useProfile(profile: Profile) {
       .single();
     setSaving(false);
     if (err || !data) {
-      setError('তথ্য সংরক্ষণ করতে সমস্যা হয়েছে');
+      setError(t('account.saveError'));
       return null;
     }
     return data as Profile;
-  }, [profile.id]);
+  }, [profile.id, t]);
 
   return { saving, error, updateProfile };
 }

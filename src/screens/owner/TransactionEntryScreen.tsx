@@ -9,7 +9,8 @@ import NumericKeypad from '../../components/NumericKeypad';
 import VoiceRecorder from '../../components/VoiceRecorder';
 import { useTransactions } from '../../hooks/useTransactions';
 import { uploadFile } from '../../utils/uploadFile';
-import { formatAmount } from '../../utils/currencyFormat';
+import { formatAmount, formatDigits } from '../../utils/currencyFormat';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function TransactionEntryScreen({ navigation, route, profile }: Props) {
+  const { t } = useTranslation();
   const { customerId } = route.params;
   const [type, setType] = useState<'owes' | 'paid'>('owes');
   const [amountStr, setAmountStr] = useState('');
@@ -39,7 +41,7 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
   async function handleSave() {
     const amount = parseFloat(amountStr);
     if (!amountStr || isNaN(amount) || amount <= 0) {
-      Alert.alert('ত্রুটি', 'সঠিক পরিমাণ লিখুন');
+      Alert.alert(t('common.error'), t('transactionEntry.invalidAmount'));
       return;
     }
 
@@ -59,16 +61,13 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
       await addTransaction({ owner_id: profile.id, amount, type, voice_note_url });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e.message ?? 'লেনদেন সংরক্ষণ করতে সমস্যা হয়েছে');
+      Alert.alert(t('common.error'), e.message ?? t('transactionEntry.saveError'));
     } finally {
       setSaving(false);
     }
   }
 
-  const amount = parseFloat(amountStr) || 0;
-  const bnAmount = amountStr
-    ? amountStr.replace(/\d/g, (d) => ['০','১','২','৩','৪','৫','৬','৭','৮','৯'][parseInt(d)])
-    : '০';
+  const displayAmount = formatDigits(amountStr || '0');
 
   return (
     <View style={styles.container}>
@@ -80,7 +79,7 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
           activeOpacity={0.8}
         >
           <Text style={[styles.typeButtonText, type === 'owes' && styles.typeButtonTextRed]}>
-            বাকি দিলাম
+            {t('transactionEntry.owe')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -89,7 +88,7 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
           activeOpacity={0.8}
         >
           <Text style={[styles.typeButtonText, type === 'paid' && styles.typeButtonTextGreen]}>
-            টাকা পেলাম
+            {t('transactionEntry.paid')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -97,13 +96,13 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
       {/* Amount display */}
       <View style={styles.amountDisplay}>
         <Text style={[styles.amountText, type === 'owes' ? styles.amountRed : styles.amountGreen]}>
-          ৳{bnAmount}
+          ৳{displayAmount}
         </Text>
       </View>
 
       {/* Voice note */}
       <View style={styles.voiceRow}>
-        <VoiceRecorder onRecorded={setVoiceNoteUri} existingUri={voiceNoteUri} label="নোট বলুন" />
+        <VoiceRecorder onRecorded={setVoiceNoteUri} existingUri={voiceNoteUri} label={t('transactionEntry.recordNote')} />
       </View>
 
       {/* Keypad */}
@@ -125,7 +124,7 @@ export default function TransactionEntryScreen({ navigation, route, profile }: P
         {saving ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.saveButtonText}>সংরক্ষণ করুন</Text>
+          <Text style={styles.saveButtonText}>{t('transactionEntry.submit')}</Text>
         )}
       </TouchableOpacity>
     </View>

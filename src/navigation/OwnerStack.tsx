@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, Alert } from 'react-native';
+import { View, TouchableOpacity, Text, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/owner/HomeScreen';
 import AddCustomerScreen from '../screens/owner/AddCustomerScreen';
@@ -9,6 +9,8 @@ import TransactionEntryScreen from '../screens/owner/TransactionEntryScreen';
 import SubscriptionScreen from '../screens/owner/SubscriptionScreen';
 import AccountScreen from '../screens/owner/AccountScreen';
 import AccountMenuButton from '../components/AccountMenuButton';
+import NotificationBellButton from '../components/NotificationBellButton';
+import { useTranslation } from '../i18n/LanguageContext';
 import type { Profile } from '../hooks/useAuth';
 
 export type OwnerStackParamList = {
@@ -30,10 +32,12 @@ interface Props {
 }
 
 export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props) {
+  const { t } = useTranslation();
+
   function confirmLogout() {
-    Alert.alert('লগআউট', 'আপনি কি লগআউট করতে চান?', [
-      { text: 'না', style: 'cancel' },
-      { text: 'হ্যাঁ', style: 'destructive', onPress: onLogout },
+    Alert.alert(t('admin.logoutConfirmTitle'), t('admin.logoutConfirmMessage'), [
+      { text: t('admin.logoutNo'), style: 'cancel' },
+      { text: t('admin.logoutYes'), style: 'destructive', onPress: onLogout },
     ]);
   }
 
@@ -48,42 +52,45 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
       <Stack.Screen
         name="Home"
         options={({ navigation }) => ({
-          title: 'বাকি খাতা',
+          title: t('home.title'),
           headerRight: () => (
-            <AccountMenuButton
-              photoUrl={profile.owner_photo_url}
-              onAccountPress={() => navigation.navigate('Account')}
-              onLogoutPress={confirmLogout}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <NotificationBellButton ownerId={profile.id} />
+              <AccountMenuButton
+                photoUrl={profile.owner_photo_url}
+                onAccountPress={() => navigation.navigate('Account')}
+                onLogoutPress={confirmLogout}
+              />
+            </View>
           ),
         })}
       >
         {(props) => <HomeScreen {...props} profile={profile} />}
       </Stack.Screen>
-      <Stack.Screen name="AddCustomer" options={{ title: 'নতুন গ্রাহক' }}>
+      <Stack.Screen name="AddCustomer" options={{ title: t('addCustomer.heading') }}>
         {(props) => <AddCustomerScreen {...props} profile={profile} />}
       </Stack.Screen>
       <Stack.Screen
         name="CustomerDetail"
         options={({ navigation, route }) => ({
-          title: 'গ্রাহকের হিসাব',
+          title: t('customerDetail.title'),
           headerRight: () => (
             <TouchableOpacity onPress={() => navigation.navigate('EditCustomer', { customerId: route.params.customerId })}>
-              <Text style={{ color: '#1565C0', fontSize: 14 }}>✎ সম্পাদনা</Text>
+              <Text style={{ color: '#1565C0', fontSize: 14 }}>{t('customerDetail.edit')}</Text>
             </TouchableOpacity>
           ),
         })}
       >
         {(props) => <CustomerDetailScreen {...props} profile={profile} />}
       </Stack.Screen>
-      <Stack.Screen name="EditCustomer" options={{ title: 'গ্রাহক সম্পাদনা' }} component={EditCustomerScreen} />
-      <Stack.Screen name="TransactionEntry" options={{ title: 'লেনদেন' }}>
+      <Stack.Screen name="EditCustomer" options={{ title: t('editCustomer.title') }} component={EditCustomerScreen} />
+      <Stack.Screen name="TransactionEntry" options={{ title: t('transactionEntry.title') }}>
         {(props) => <TransactionEntryScreen {...props} profile={profile} />}
       </Stack.Screen>
-      <Stack.Screen name="Subscription" options={{ title: 'সাবস্ক্রিপশন' }}>
+      <Stack.Screen name="Subscription" options={{ title: t('subscription.title') }}>
         {(props) => <SubscriptionScreen profile={profile} />}
       </Stack.Screen>
-      <Stack.Screen name="Account" options={{ title: 'অ্যাকাউন্ট' }}>
+      <Stack.Screen name="Account" options={{ title: t('account.title') }}>
         {(props) => <AccountScreen {...props} profile={profile} onProfileUpdate={onProfileUpdate} />}
       </Stack.Screen>
     </Stack.Navigator>

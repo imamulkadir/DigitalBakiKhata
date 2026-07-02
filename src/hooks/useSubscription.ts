@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/LanguageContext';
 import type { Profile } from './useAuth';
 
 export function useSubscription(profile: Profile | null) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,12 +19,12 @@ export function useSubscription(profile: Profile | null) {
       status: 'pending',
     });
     if (err) {
-      setError('পেমেন্ট ক্লেইম করতে সমস্যা হয়েছে');
+      setError(t('subscription.claimError'));
     } else {
       setClaimed(true);
     }
     setSubmitting(false);
-  }, [profile]);
+  }, [profile, t]);
 
   const isOverdue = profile?.subscription_status === 'overdue';
   const isDueSoon = profile?.subscription_status === 'due_soon';

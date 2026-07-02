@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { formatDigits } from '../utils/currencyFormat';
 
 interface Props {
   onPress: (key: string) => void;
@@ -9,19 +10,11 @@ interface Props {
 }
 
 const KEYS = [
-  ['১', '২', '৩'],
-  ['৪', '৫', '৬'],
-  ['৭', '৮', '৯'],
-  ['mic', '০', 'back'],
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['mic', '0', 'back'],
 ];
-
-// Map Bengali display digits to actual numeric values
-const KEY_VALUE: Record<string, string> = {
-  '১': '1', '২': '2', '৩': '3',
-  '৪': '4', '৫': '5', '৬': '6',
-  '৭': '7', '৮': '8', '৯': '9',
-  '০': '0',
-};
 
 export default function NumericKeypad({ onPress, onBackspace, onMic, showMic = false }: Props) {
   return (
@@ -57,10 +50,10 @@ export default function NumericKeypad({ onPress, onBackspace, onMic, showMic = f
               <TouchableOpacity
                 key={key}
                 style={styles.key}
-                onPress={() => onPress(KEY_VALUE[key] ?? key)}
+                onPress={() => onPress(key)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.keyText}>{key}</Text>
+                <Text style={styles.keyText}>{formatDigits(key)}</Text>
               </TouchableOpacity>
             );
           })}

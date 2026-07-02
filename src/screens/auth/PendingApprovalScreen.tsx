@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { AuthStackParamList } from '../../navigation/AuthStack';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'PendingApproval'>;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function PendingApprovalScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const [checking, setChecking] = useState(false);
 
   async function handleRefresh() {
@@ -24,21 +26,19 @@ export default function PendingApprovalScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>⏳</Text>
-      <Text style={styles.title}>অনুমোদনের অপেক্ষায়</Text>
-      <Text style={styles.message}>
-        আপনার অ্যাকাউন্ট যাচাই করা হচ্ছে। অনুমোদনের পর আপনি লগইন করতে পারবেন।
-      </Text>
+      <Text style={styles.title}>{t('pendingApproval.title')}</Text>
+      <Text style={styles.message}>{t('pendingApproval.message')}</Text>
 
       <TouchableOpacity style={styles.button} onPress={handleRefresh} disabled={checking} activeOpacity={0.85}>
         {checking ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>রিফ্রেশ করুন</Text>
+          <Text style={styles.buttonText}>{t('pendingApproval.refresh')}</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.replace('Login')} style={styles.link}>
-        <Text style={styles.linkText}>লগইন করুন</Text>
+        <Text style={styles.linkText}>{t('pendingApproval.loginLink')}</Text>
       </TouchableOpacity>
     </View>
   );

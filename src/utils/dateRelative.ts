@@ -1,7 +1,17 @@
-const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+import { getCurrentLanguage } from '../i18n/currentLanguage';
+import { translations } from '../i18n/translations';
+import { formatNumber } from './currencyFormat';
 
-function toBnNum(n: number): string {
-  return String(n).replace(/\d/g, (d) => bnDigits[parseInt(d)]);
+function locale(): string {
+  return getCurrentLanguage() === 'bn' ? 'bn-BD' : 'en-US';
+}
+
+function dict() {
+  return translations[getCurrentLanguage()].dateRelative;
+}
+
+function interpolate(str: string, n: number): string {
+  return str.replace('{n}', formatNumber(n));
 }
 
 export function relativeDate(dateStr: string): string {
@@ -14,25 +24,26 @@ export function relativeDate(dateStr: string): string {
   const diffDays = Math.floor(diffHours / 24);
   const diffWeeks = Math.floor(diffDays / 7);
   const diffMonths = Math.floor(diffDays / 30);
+  const d = dict();
 
-  if (diffSeconds < 60) return 'এইমাত্র';
-  if (diffMinutes < 60) return `${toBnNum(diffMinutes)} মিনিট আগে`;
-  if (diffHours < 24) return `${toBnNum(diffHours)} ঘণ্টা আগে`;
-  if (diffDays === 1) return 'গতকাল';
-  if (diffDays < 7) return `${toBnNum(diffDays)} দিন আগে`;
-  if (diffWeeks < 4) return `${toBnNum(diffWeeks)} সপ্তাহ আগে`;
-  if (diffMonths < 12) return `${toBnNum(diffMonths)} মাস আগে`;
-  return `${toBnNum(Math.floor(diffMonths / 12))} বছর আগে`;
+  if (diffSeconds < 60) return d.justNow;
+  if (diffMinutes < 60) return interpolate(d.minutesAgo, diffMinutes);
+  if (diffHours < 24) return interpolate(d.hoursAgo, diffHours);
+  if (diffDays === 1) return d.yesterday;
+  if (diffDays < 7) return interpolate(d.daysAgo, diffDays);
+  if (diffWeeks < 4) return interpolate(d.weeksAgo, diffWeeks);
+  if (diffMonths < 12) return interpolate(d.monthsAgo, diffMonths);
+  return interpolate(d.yearsAgo, Math.floor(diffMonths / 12));
 }
 
 export function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString(locale(), { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export function formatDateTime(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleString('bn-BD', {
+  return date.toLocaleString(locale(), {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });

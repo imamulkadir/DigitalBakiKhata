@@ -8,10 +8,12 @@ import { AuthStackParamList } from '../../navigation/AuthStack';
 import { registerUser } from '../../hooks/useAuth';
 import { isValidBDPhone, toEnglishDigits } from '../../utils/phoneValidation';
 import PinInput from '../../components/PinInput';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 type Props = { navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'> };
 
 export default function RegisterScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [localNumber, setLocalNumber] = useState('');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -23,15 +25,15 @@ export default function RegisterScreen({ navigation }: Props) {
   async function handleRegister() {
     setError('');
     if (!isValidBDPhone(phone)) {
-      setError('সঠিক বাংলাদেশি ফোন নম্বর দিন (+880...)');
+      setError(t('register.invalidPhone'));
       return;
     }
     if (pin.length !== 6) {
-      setError('PIN অবশ্যই ৬ সংখ্যার হতে হবে');
+      setError(t('register.pinLengthError'));
       return;
     }
     if (pin !== confirmPin) {
-      setError('PIN দুটি মিলছে না');
+      setError(t('register.pinMismatch'));
       return;
     }
 
@@ -41,14 +43,14 @@ export default function RegisterScreen({ navigation }: Props) {
       result = await registerUser(phone, pin, shopName || undefined);
     } catch {
       setLoading(false);
-      setError('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন');
+      setError(t('common.networkError'));
       return;
     }
     setLoading(false);
 
     if ('error' in result) {
       if (result.error === 'এই নম্বরটি আগে থেকেই নিবন্ধিত') {
-        setError('এই নম্বরটি আগে থেকেই নিবন্ধিত। লগইন করুন।');
+        setError(t('register.alreadyRegisteredHint'));
       } else {
         setError(result.error);
       }
@@ -65,8 +67,8 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>বাকি খাতা</Text>
-        <Text style={styles.subtitle}>নতুন অ্যাকাউন্ট খুলুন</Text>
+        <Text style={styles.title}>{t('register.title')}</Text>
+        <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
 
         <View style={styles.phoneRow}>
           <View style={styles.phonePrefix}>
@@ -77,7 +79,7 @@ export default function RegisterScreen({ navigation }: Props) {
             placeholder="1XXXXXXXXX"
             keyboardType="number-pad"
             value={localNumber}
-            onChangeText={(t) => setLocalNumber(toEnglishDigits(t).replace(/\D/g, '').slice(0, 10))}
+            onChangeText={(val) => setLocalNumber(toEnglishDigits(val).replace(/\D/g, '').slice(0, 10))}
             autoComplete="tel"
             maxLength={10}
           />
@@ -85,7 +87,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
         <TextInput
           style={styles.input}
-          placeholder="দোকানের নাম (ঐচ্ছিক)"
+          placeholder={t('register.shopNamePlaceholder')}
           value={shopName}
           onChangeText={setShopName}
           maxLength={80}
@@ -97,11 +99,11 @@ export default function RegisterScreen({ navigation }: Props) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading} activeOpacity={0.85}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>নিবন্ধন করুন</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('register.submit')}</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.replace('Login')} style={styles.link}>
-          <Text style={styles.linkText}>ইতিমধ্যে অ্যাকাউন্ট আছে? প্রবেশ করুন</Text>
+          <Text style={styles.linkText}>{t('register.loginLink')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>

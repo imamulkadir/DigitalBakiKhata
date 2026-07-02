@@ -1,8 +1,16 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/LanguageContext';
+import { translations } from '../i18n/translations';
+import { getCurrentLanguage } from '../i18n/currentLanguage';
 import type { CustomerRow } from '../components/CustomerListItem';
 
+function tt(path: string): string {
+  return path.split('.').reduce((acc: any, key) => acc?.[key], translations[getCurrentLanguage()]) ?? path;
+}
+
 export function useCustomers(ownerId: string) {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,12 +25,12 @@ export function useCustomers(ownerId: string) {
       .order('balance', { ascending: false });
 
     if (err) {
-      setError('গ্রাহক তালিকা লোড করতে সমস্যা হয়েছে');
+      setError(t('home.loadError'));
     } else {
       setCustomers((data as CustomerRow[]) ?? []);
     }
     setLoading(false);
-  }, [ownerId]);
+  }, [ownerId, t]);
 
   const addCustomer = useCallback(async (params: {
     photo_url?: string;
@@ -34,20 +42,23 @@ export function useCustomers(ownerId: string) {
       owner_id: ownerId,
       ...params,
     });
-    if (err) throw new Error('গ্রাহক যোগ করতে সমস্যা হয়েছে');
+    if (err) throw new Error(t('addCustomer.saveError'));
     await fetchCustomers();
-  }, [ownerId, fetchCustomers]);
+  }, [ownerId, fetchCustomers, t]);
 
   return { customers, loading, error, fetchCustomers, addCustomer };
 }
 
+// Plain (non-hook) functions — read the active language via the module-level
+// getter/setter (mirrors setSupabaseToken/currentToken) since they can't call
+// useTranslation() themselves.
 export async function getCustomerDetail(customerId: string) {
   const { data, error } = await supabase
     .from('customer_balances')
     .select('*')
     .eq('customer_id', customerId)
     .single();
-  if (error) throw new Error('গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
+  if (error) throw new Error(tt('customerDetail.loadError'));
   return data;
 }
 
@@ -57,5 +68,5 @@ export async function updateCustomer(customerId: string, fields: {
   phone_number?: string;
 }) {
   const { error } = await supabase.from('customers').update(fields).eq('id', customerId);
-  if (error) throw new Error('গ্রাহকের তথ্য হালনাগাদ করতে সমস্যা হয়েছে');
+  if (error) throw new Error(tt('editCustomer.saveError'));
 }

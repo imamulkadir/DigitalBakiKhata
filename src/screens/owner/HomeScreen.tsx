@@ -10,6 +10,7 @@ import { OwnerStackParamList } from '../../navigation/OwnerStack';
 import CustomerListItem, { CustomerRow } from '../../components/CustomerListItem';
 import { useCustomers } from '../../hooks/useCustomers';
 import { formatAmount } from '../../utils/currencyFormat';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function HomeScreen({ navigation, profile }: Props) {
+  const { t } = useTranslation();
   const { customers, loading, error, fetchCustomers } = useCustomers(profile.id);
   const [refreshing, setRefreshing] = useState(false);
   const [dismissedBanner, setDismissedBanner] = useState(false);
@@ -39,22 +41,18 @@ export default function HomeScreen({ navigation, profile }: Props) {
       {/* Subscription banners */}
       {isOverdue && (
         <View style={styles.overdueBanner}>
-          <Text style={styles.overdueBannerText}>
-            সাবস্ক্রিপশনের মেয়াদ শেষ হয়েছে। নতুন এন্ট্রি যোগ করার জন্য পুনরায় সক্রিয় করুন।
-          </Text>
+          <Text style={styles.overdueBannerText}>{t('home.overdueBanner')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
-            <Text style={styles.bannerLink}>পেমেন্ট করুন →</Text>
+            <Text style={styles.bannerLink}>{t('home.payNow')}</Text>
           </TouchableOpacity>
         </View>
       )}
       {isDueSoon && !dismissedBanner && (
         <View style={styles.dueSoonBanner}>
-          <Text style={styles.dueSoonBannerText}>
-            আপনার সাবস্ক্রিপশনের মেয়াদ শেষ হতে চলেছে
-          </Text>
+          <Text style={styles.dueSoonBannerText}>{t('home.dueSoonBanner')}</Text>
           <View style={styles.bannerActions}>
             <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
-              <Text style={styles.bannerLink}>দেখুন →</Text>
+              <Text style={styles.bannerLink}>{t('home.viewLink')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setDismissedBanner(true)} style={{ marginLeft: 16 }}>
               <Text style={styles.bannerDismiss}>✕</Text>
@@ -65,7 +63,7 @@ export default function HomeScreen({ navigation, profile }: Props) {
 
       {/* Total balance summary */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>আজকের মোট বাকি</Text>
+        <Text style={styles.summaryLabel}>{t('home.totalDue')}</Text>
         <Text style={styles.summaryAmount}>৳{formatAmount(totalBaki)}</Text>
       </View>
 
@@ -87,13 +85,13 @@ export default function HomeScreen({ navigation, profile }: Props) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>📋</Text>
-              <Text style={styles.emptyText}>এখনও কোনো গ্রাহক যোগ করা হয়নি</Text>
+              <Text style={styles.emptyText}>{t('home.emptyList')}</Text>
               <TouchableOpacity
                 style={styles.emptyButton}
                 onPress={() => !isOverdue && navigation.navigate('AddCustomer')}
                 activeOpacity={isOverdue ? 1 : 0.8}
               >
-                <Text style={styles.emptyButtonText}>প্রথম গ্রাহক যোগ করুন</Text>
+                <Text style={styles.emptyButtonText}>{t('home.addFirstCustomer')}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -107,7 +105,7 @@ export default function HomeScreen({ navigation, profile }: Props) {
           onPress={() => navigation.navigate('AddCustomer')}
           activeOpacity={0.85}
         >
-          <Text style={styles.fabText}>+ নতুন গ্রাহক</Text>
+          <Text style={styles.fabText}>+ {t('home.addCustomer')}</Text>
         </TouchableOpacity>
       )}
     </View>

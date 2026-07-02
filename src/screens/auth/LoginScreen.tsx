@@ -8,6 +8,8 @@ import { AuthStackParamList } from '../../navigation/AuthStack';
 import { loginUser, saveSession, saveLastPhoneNumber, loadLastPhoneNumber, Profile } from '../../hooks/useAuth';
 import { isValidBDPhone, toEnglishDigits } from '../../utils/phoneValidation';
 import PinInput from '../../components/PinInput';
+import LanguageToggleCompact from '../../components/LanguageToggleCompact';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export default function LoginScreen({ navigation, onLogin }: Props) {
+  const { t } = useTranslation();
   const [localNumber, setLocalNumber] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,11 +31,11 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
   async function handleLogin() {
     setError('');
     if (!isValidBDPhone(phone)) {
-      setError('সঠিক বাংলাদেশি ফোন নম্বর দিন');
+      setError(t('login.invalidPhone'));
       return;
     }
     if (pin.length !== 6) {
-      setError('PIN অবশ্যই ৬ সংখ্যার হতে হবে');
+      setError(t('login.pinLengthError'));
       return;
     }
 
@@ -42,7 +45,7 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
       result = await loginUser(phone, pin);
     } catch {
       setLoading(false);
-      setError('নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন');
+      setError(t('common.networkError'));
       return;
     }
     setLoading(false);
@@ -51,7 +54,7 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
       if ((result as any).status === 'pending_approval') {
         navigation.replace('PendingApproval', { phone });
       } else {
-        setError((result as any).error ?? 'লগইন করতে সমস্যা হয়েছে');
+        setError((result as any).error ?? t('login.loginFailed'));
       }
       return;
     }
@@ -65,8 +68,12 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>বাকি খাতা</Text>
-        <Text style={styles.subtitle}>আপনার অ্যাকাউন্টে প্রবেশ করুন</Text>
+        <View style={styles.langRow}>
+          <LanguageToggleCompact />
+        </View>
+
+        <Text style={styles.title}>{t('login.title')}</Text>
+        <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
 
         <View style={styles.phoneRow}>
           <View style={styles.phonePrefix}>
@@ -74,10 +81,10 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
           </View>
           <TextInput
             style={styles.phoneInput}
-            placeholder="1XXXXXXXXX"
+            placeholder={t('login.phonePlaceholder')}
             keyboardType="number-pad"
             value={localNumber}
-            onChangeText={(t) => setLocalNumber(toEnglishDigits(t).replace(/\D/g, '').slice(0, 10))}
+            onChangeText={(val) => setLocalNumber(toEnglishDigits(val).replace(/\D/g, '').slice(0, 10))}
             autoComplete="tel"
             maxLength={10}
           />
@@ -88,11 +95,11 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading} activeOpacity={0.85}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>প্রবেশ করুন</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('login.submit')}</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.replace('Register')} style={styles.link}>
-          <Text style={styles.linkText}>নতুন অ্যাকাউন্ট খুলুন</Text>
+          <Text style={styles.linkText}>{t('login.registerLink')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -105,6 +112,10 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#FAFAFA',
     justifyContent: 'center',
+  },
+  langRow: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 32,

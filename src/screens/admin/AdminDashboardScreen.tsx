@@ -6,9 +6,11 @@ import { supabase } from '../../lib/supabase';
 import PendingApprovalsTab from './PendingApprovalsTab';
 import PaymentConfirmationTab from './PaymentConfirmationTab';
 import AllOwnersTab from './AllOwnersTab';
+import AnnouncementsTab from './AnnouncementsTab';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
-type Tab = 'pending' | 'payments' | 'all';
+type Tab = 'pending' | 'payments' | 'all' | 'announcements';
 
 interface Props {
   profile: Profile;
@@ -23,6 +25,7 @@ interface Counts {
 }
 
 export default function AdminDashboardScreen({ profile, token, onLogout }: Props) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [counts, setCounts] = useState<Counts>({ pending: 0, due_soon: 0, overdue: 0 });
   const [loadingCounts, setLoadingCounts] = useState(false);
@@ -44,16 +47,17 @@ export default function AdminDashboardScreen({ profile, token, onLogout }: Props
     <View style={styles.container}>
       {/* Metric cards */}
       <View style={styles.metricsRow}>
-        <MetricCard label="অনুমোদনের অপেক্ষায়" value={counts.pending} color="#1565C0" loading={loadingCounts} />
-        <MetricCard label="শেষ হতে চলেছে" value={counts.due_soon} color="#E65100" loading={loadingCounts} />
-        <MetricCard label="মেয়াদোত্তীর্ণ" value={counts.overdue} color="#D32F2F" loading={loadingCounts} />
+        <MetricCard label={t('admin.pendingCount')} value={counts.pending} color="#1565C0" loading={loadingCounts} />
+        <MetricCard label={t('admin.dueSoonCount')} value={counts.due_soon} color="#E65100" loading={loadingCounts} />
+        <MetricCard label={t('admin.overdueCount')} value={counts.overdue} color="#D32F2F" loading={loadingCounts} />
       </View>
 
       {/* Tab bar */}
       <View style={styles.tabBar}>
-        <TabButton label="অনুমোদন" active={activeTab === 'pending'} onPress={() => setActiveTab('pending')} />
-        <TabButton label="পেমেন্ট" active={activeTab === 'payments'} onPress={() => setActiveTab('payments')} />
-        <TabButton label="সব দোকানদার" active={activeTab === 'all'} onPress={() => setActiveTab('all')} />
+        <TabButton label={t('admin.tabPending')} active={activeTab === 'pending'} onPress={() => setActiveTab('pending')} />
+        <TabButton label={t('admin.tabPayments')} active={activeTab === 'payments'} onPress={() => setActiveTab('payments')} />
+        <TabButton label={t('admin.tabAll')} active={activeTab === 'all'} onPress={() => setActiveTab('all')} />
+        <TabButton label={t('admin.tabAnnouncements')} active={activeTab === 'announcements'} onPress={() => setActiveTab('announcements')} />
       </View>
 
       {/* Tab content */}
@@ -61,6 +65,7 @@ export default function AdminDashboardScreen({ profile, token, onLogout }: Props
         {activeTab === 'pending' && <PendingApprovalsTab adminProfile={profile} adminToken={token} />}
         {activeTab === 'payments' && <PaymentConfirmationTab adminProfile={profile} adminToken={token} />}
         {activeTab === 'all' && <AllOwnersTab />}
+        {activeTab === 'announcements' && <AnnouncementsTab adminToken={token} />}
       </View>
     </View>
   );

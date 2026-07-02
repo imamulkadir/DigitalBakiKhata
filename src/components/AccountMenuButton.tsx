@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, Image, Modal, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface Props {
   photoUrl: string | null;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function AccountMenuButton({ photoUrl, onAccountPress, onLogoutPress }: Props) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -32,7 +34,7 @@ export default function AccountMenuButton({ photoUrl, onAccountPress, onLogoutPr
               onPress={() => { setVisible(false); onAccountPress(); }}
               activeOpacity={0.7}
             >
-              <Text style={styles.menuItemText}>অ্যাকাউন্ট</Text>
+              <Text style={styles.menuItemText}>{t('home.account')}</Text>
             </TouchableOpacity>
             <View style={styles.divider} />
             <TouchableOpacity
@@ -40,7 +42,7 @@ export default function AccountMenuButton({ photoUrl, onAccountPress, onLogoutPr
               onPress={() => { setVisible(false); onLogoutPress(); }}
               activeOpacity={0.7}
             >
-              <Text style={[styles.menuItemText, { color: '#D32F2F' }]}>লগআউট</Text>
+              <Text style={[styles.menuItemText, { color: '#D32F2F' }]}>{t('home.logout')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

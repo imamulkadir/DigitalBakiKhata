@@ -5,6 +5,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import StatusPill from '../../components/StatusPill';
 import { formatDate } from '../../utils/dateRelative';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 interface OwnerRow {
   id: string;
@@ -17,6 +18,7 @@ interface OwnerRow {
 }
 
 export default function AllOwnersTab() {
+  const { t } = useTranslation();
   const [owners, setOwners] = useState<OwnerRow[]>([]);
   const [filtered, setFiltered] = useState<OwnerRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -57,7 +59,7 @@ export default function AllOwnersTab() {
     <View style={styles.container}>
       <TextInput
         style={styles.search}
-        placeholder="ফোন নম্বর বা দোকানের নাম খুঁজুন"
+        placeholder={t('admin.searchPlaceholder')}
         value={search}
         onChangeText={setSearch}
       />
@@ -75,16 +77,16 @@ export default function AllOwnersTab() {
               <StatusPill status={(item.subscription_status as any) ?? 'active'} />
             </View>
             <View style={[styles.row, { marginTop: 8 }]}>
-              <Text style={styles.meta}>নিবন্ধন: {formatDate(item.created_at)}</Text>
+              <Text style={styles.meta}>{t('admin.registeredOn')}: {formatDate(item.created_at)}</Text>
               {item.next_due_date && (
-                <Text style={styles.meta}>পরবর্তী: {formatDate(item.next_due_date)}</Text>
+                <Text style={styles.meta}>{t('admin.nextDue')}: {formatDate(item.next_due_date)}</Text>
               )}
             </View>
           </View>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>কোনো দোকানদার পাওয়া যায়নি</Text>
+            <Text style={styles.emptyText}>{t('admin.noOwners')}</Text>
           </View>
         }
       />

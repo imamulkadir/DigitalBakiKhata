@@ -13,6 +13,7 @@ import { useTransactions, Transaction } from '../../hooks/useTransactions';
 import { getCustomerDetail } from '../../hooks/useCustomers';
 import { formatDateTime } from '../../utils/dateRelative';
 import { formatAmount } from '../../utils/currencyFormat';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
 type Props = {
@@ -33,6 +34,7 @@ interface CustomerDetail {
 }
 
 export default function CustomerDetailScreen({ navigation, route, profile }: Props) {
+  const { t } = useTranslation();
   const { customerId } = route.params;
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loadingCustomer, setLoadingCustomer] = useState(true);
@@ -47,7 +49,7 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
           const data = await getCustomerDetail(customerId);
           if (!cancelled) setCustomer(data as CustomerDetail);
         } catch {
-          if (!cancelled) Alert.alert('ত্রুটি', 'গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
+          if (!cancelled) Alert.alert(t('common.error'), t('customerDetail.loadError'));
         } finally {
           if (!cancelled) setLoadingCustomer(false);
         }
@@ -66,10 +68,10 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
   function sendReminder() {
     if (!customer?.phone_number) return;
     const customerName = customer.name || customer.fallback_label || '';
-    const greeting = customerName ? `প্রিয় ${customerName},\n` : '';
-    const shopLine = profile.shop_name ? `${profile.shop_name}-এ ` : '';
+    const greeting = customerName ? `${t('customerDetail.greeting', { name: customerName })}\n` : '';
+    const shopLine = profile.shop_name ? t('customerDetail.shopSuffix', { shop: profile.shop_name }) : '';
     const msg = encodeURIComponent(
-      `${greeting}${shopLine}আপনার বাকি আছে ৳${formatAmount(customer.balance)}। অনুগ্রহ করে যত দ্রুত সম্ভব পরিশোধ করুন। ধন্যবাদ।`
+      `${greeting}${shopLine}${t('customerDetail.reminderMessage', { amount: formatAmount(customer.balance) })}`
     );
     Linking.openURL(`https://wa.me/${customer.phone_number.replace('+', '')}?text=${msg}`);
   }
@@ -104,7 +106,7 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
           )}
         </View>
 
-        <Text style={styles.name}>{customer?.name || customer?.fallback_label || 'গ্রাহক'}</Text>
+        <Text style={styles.name}>{customer?.name || customer?.fallback_label || t('customerDetail.defaultName')}</Text>
         {customer?.address && <Text style={styles.address}>{customer.address}</Text>}
         {customer && <BalanceBadge balance={customer.balance} size="large" />}
 
@@ -114,7 +116,7 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
             onPress={() => !isOverdue && navigation.navigate('TransactionEntry', { customerId })}
             activeOpacity={isOverdue ? 1 : 0.85}
           >
-            <Text style={styles.actionButtonText}>+ লেনদেন</Text>
+            <Text style={styles.actionButtonText}>{t('customerDetail.addTransaction')}</Text>
           </TouchableOpacity>
 
           {customer?.phone_number && (
@@ -123,7 +125,7 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
               onPress={sendReminder}
               activeOpacity={0.85}
             >
-              <Text style={[styles.actionButtonText, { color: '#1565C0' }]}>রিমাইন্ডার পাঠান</Text>
+              <Text style={[styles.actionButtonText, { color: '#1565C0' }]}>{t('customerDetail.sendReminder')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -143,7 +145,7 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#D32F2F" /> : null}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>এখনও কোনো লেনদেন নেই</Text>
+              <Text style={styles.emptyText}>{t('customerDetail.noTransactions')}</Text>
             </View>
           }
         />

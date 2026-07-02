@@ -4,6 +4,9 @@ import {
   Alert, FlatList,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { useTranslation } from '../../i18n/LanguageContext';
+import { formatDate } from '../../utils/dateRelative';
+import { formatAmount } from '../../utils/currencyFormat';
 import type { Profile } from '../../hooks/useAuth';
 
 interface PaymentClaim {
@@ -20,6 +23,7 @@ interface Props {
 }
 
 export default function PaymentConfirmationTab({ adminProfile, adminToken }: Props) {
+  const { t } = useTranslation();
   const [claims, setClaims] = useState<PaymentClaim[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -53,7 +57,7 @@ export default function PaymentConfirmationTab({ adminProfile, adminToken }: Pro
       if (data.error) throw new Error(data.error);
       await fetchClaims();
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e.message);
+      Alert.alert(t('common.error'), e.message);
     } finally {
       setActionLoading(null);
     }
@@ -71,8 +75,8 @@ export default function PaymentConfirmationTab({ adminProfile, adminToken }: Pro
           <View style={styles.info}>
             <Text style={styles.phone}>{item.profiles?.phone_number}</Text>
             {item.profiles?.shop_name && <Text style={styles.shop}>{item.profiles.shop_name}</Text>}
-            <Text style={styles.amount}>৳{item.amount}</Text>
-            <Text style={styles.date}>{new Date(item.claimed_at).toLocaleDateString('bn-BD')}</Text>
+            <Text style={styles.amount}>৳{formatAmount(item.amount)}</Text>
+            <Text style={styles.date}>{formatDate(item.claimed_at)}</Text>
           </View>
           <View style={styles.buttons}>
             <TouchableOpacity
@@ -84,7 +88,7 @@ export default function PaymentConfirmationTab({ adminProfile, adminToken }: Pro
               {actionLoading === item.id ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.btnText}>নিশ্চিত করুন</Text>
+                <Text style={styles.btnText}>{t('admin.confirm')}</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -93,14 +97,14 @@ export default function PaymentConfirmationTab({ adminProfile, adminToken }: Pro
               disabled={actionLoading === item.id}
               activeOpacity={0.85}
             >
-              <Text style={[styles.btnText, { color: '#D32F2F' }]}>প্রত্যাখ্যান করুন</Text>
+              <Text style={[styles.btnText, { color: '#D32F2F' }]}>{t('admin.reject')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>কোনো পেমেন্ট নিশ্চিতকরণ বাকি নেই</Text>
+          <Text style={styles.emptyText}>{t('admin.noPayments')}</Text>
         </View>
       }
     />

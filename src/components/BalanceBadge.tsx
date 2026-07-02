@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { formatAmount } from '../utils/currencyFormat';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface Props {
   balance: number;
@@ -8,12 +9,11 @@ interface Props {
 }
 
 export default function BalanceBadge({ balance, size = 'small' }: Props) {
+  const { t } = useTranslation();
   const isOwed = balance > 0;
-  const isSettled = balance <= 0;
   const color = isOwed ? '#D32F2F' : '#388E3C';
   const bgColor = isOwed ? '#FFEBEE' : '#E8F5E9';
-  const prefix = isOwed ? '' : '';
-  const label = isOwed ? 'বাকি' : 'পরিশোধ';
+  const label = isOwed ? t('balanceBadge.due') : t('balanceBadge.settled');
 
   return (
     <View style={[styles.badge, { backgroundColor: bgColor }, size === 'large' && styles.badgeLarge]}>

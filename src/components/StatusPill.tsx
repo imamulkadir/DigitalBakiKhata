@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from '../i18n/LanguageContext';
 
 type Status = 'active' | 'due_soon' | 'overdue' | 'pending_approval' | 'rejected' | 'suspended';
 
-const CONFIG: Record<Status, { label: string; bg: string; color: string }> = {
-  active: { label: 'সক্রিয়', bg: '#E8F5E9', color: '#388E3C' },
-  due_soon: { label: 'শেষ হতে চলেছে', bg: '#FFF3E0', color: '#E65100' },
-  overdue: { label: 'মেয়াদোত্তীর্ণ', bg: '#FFEBEE', color: '#D32F2F' },
-  pending_approval: { label: 'অনুমোদনের অপেক্ষায়', bg: '#E3F2FD', color: '#1565C0' },
-  rejected: { label: 'প্রত্যাখ্যাত', bg: '#FFEBEE', color: '#D32F2F' },
-  suspended: { label: 'স্থগিত', bg: '#F5F5F5', color: '#757575' },
+const CONFIG: Record<Status, { bg: string; color: string }> = {
+  active: { bg: '#E8F5E9', color: '#388E3C' },
+  due_soon: { bg: '#FFF3E0', color: '#E65100' },
+  overdue: { bg: '#FFEBEE', color: '#D32F2F' },
+  pending_approval: { bg: '#E3F2FD', color: '#1565C0' },
+  rejected: { bg: '#FFEBEE', color: '#D32F2F' },
+  suspended: { bg: '#F5F5F5', color: '#757575' },
 };
 
 interface Props {
@@ -17,10 +18,11 @@ interface Props {
 }
 
 export default function StatusPill({ status }: Props) {
+  const { t } = useTranslation();
   const cfg = CONFIG[status] ?? CONFIG.suspended;
   return (
     <View style={[styles.pill, { backgroundColor: cfg.bg }]}>
-      <Text style={[styles.text, { color: cfg.color }]}>{cfg.label}</Text>
+      <Text style={[styles.text, { color: cfg.color }]}>{t('status.' + status)}</Text>
     </View>
   );
 }

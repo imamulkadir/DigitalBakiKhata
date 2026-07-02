@@ -1,7 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, Text, Alert } from 'react-native';
+import { View, TouchableOpacity, Text, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import LanguageToggleCompact from '../components/LanguageToggleCompact';
+import { useTranslation } from '../i18n/LanguageContext';
 import type { Profile } from '../hooks/useAuth';
 
 export type AdminStackParamList = {
@@ -17,17 +19,22 @@ interface Props {
 }
 
 export default function AdminStack({ profile, token, onLogout }: Props) {
+  const { t } = useTranslation();
+
   function confirmLogout() {
-    Alert.alert('লগআউট', 'আপনি কি লগআউট করতে চান?', [
-      { text: 'না', style: 'cancel' },
-      { text: 'হ্যাঁ', style: 'destructive', onPress: onLogout },
+    Alert.alert(t('admin.logoutConfirmTitle'), t('admin.logoutConfirmMessage'), [
+      { text: t('admin.logoutNo'), style: 'cancel' },
+      { text: t('admin.logoutYes'), style: 'destructive', onPress: onLogout },
     ]);
   }
 
   const headerRight = () => (
-    <TouchableOpacity onPress={confirmLogout} style={{ paddingHorizontal: 4 }}>
-      <Text style={{ color: '#757575', fontSize: 14 }}>লগআউট</Text>
-    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <LanguageToggleCompact />
+      <TouchableOpacity onPress={confirmLogout} style={{ paddingHorizontal: 4 }}>
+        <Text style={{ color: '#757575', fontSize: 14 }}>{t('admin.logout')}</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -38,7 +45,7 @@ export default function AdminStack({ profile, token, onLogout }: Props) {
         headerTitleStyle: { fontWeight: '500', fontSize: 18 },
       }}
     >
-      <Stack.Screen name="AdminDashboard" options={{ title: 'অ্যাডমিন ড্যাশবোর্ড', headerRight }}>
+      <Stack.Screen name="AdminDashboard" options={{ title: t('admin.dashboardTitle'), headerRight }}>
         {() => <AdminDashboardScreen profile={profile} token={token} onLogout={onLogout} />}
       </Stack.Screen>
     </Stack.Navigator>

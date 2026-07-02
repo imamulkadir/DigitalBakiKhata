@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import BalanceBadge from './BalanceBadge';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export interface CustomerRow {
   customer_id: string;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function CustomerListItem({ item, onPress }: Props) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity style={styles.row} onPress={() => onPress(item.customer_id)} activeOpacity={0.75}>
       <View style={styles.avatar}>
@@ -34,7 +36,7 @@ export default function CustomerListItem({ item, onPress }: Props) {
         ) : null}
       </View>
       <Text style={styles.label} numberOfLines={1}>
-        {item.name || item.fallback_label || 'গ্রাহক'}
+        {item.name || item.fallback_label || t('customerDetail.defaultName')}
       </Text>
       <BalanceBadge balance={item.balance} />
     </TouchableOpacity>

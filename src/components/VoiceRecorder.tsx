@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface Props {
   onRecorded: (uri: string) => void;
@@ -8,7 +9,9 @@ interface Props {
   label?: string;
 }
 
-export default function VoiceRecorder({ onRecorded, existingUri, label = 'নাম বলুন' }: Props) {
+export default function VoiceRecorder({ onRecorded, existingUri, label }: Props) {
+  const { t } = useTranslation();
+  const displayLabel = label ?? t('addCustomer.recordName');
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedUri, setRecordedUri] = useState<string | null>(existingUri ?? null);
@@ -73,7 +76,7 @@ export default function VoiceRecorder({ onRecorded, existingUri, label = 'না
         onPress={isRecording ? stopRecording : startRecording}
         activeOpacity={0.8}
       >
-        <Text style={styles.buttonText}>{isRecording ? '⏹ থামান' : `🎤 ${label}`}</Text>
+        <Text style={styles.buttonText}>{isRecording ? t('voiceRecorder.stop') : `🎤 ${displayLabel}`}</Text>
       </TouchableOpacity>
 
       {recordedUri && (
@@ -81,7 +84,7 @@ export default function VoiceRecorder({ onRecorded, existingUri, label = 'না
           {isPlaying ? (
             <ActivityIndicator size="small" color="#1565C0" />
           ) : (
-            <Text style={styles.playText}>▶ শুনুন</Text>
+            <Text style={styles.playText}>{t('voiceRecorder.listen')}</Text>
           )}
         </TouchableOpacity>
       )}

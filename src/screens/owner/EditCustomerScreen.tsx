@@ -8,6 +8,7 @@ import { RouteProp } from '@react-navigation/native';
 import { OwnerStackParamList } from '../../navigation/OwnerStack';
 import { getCustomerDetail, updateCustomer } from '../../hooks/useCustomers';
 import { toEnglishDigits } from '../../utils/phoneValidation';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<OwnerStackParamList, 'EditCustomer'>;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function EditCustomerScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { customerId } = route.params;
   const [loadingCustomer, setLoadingCustomer] = useState(true);
   const [name, setName] = useState('');
@@ -31,7 +33,7 @@ export default function EditCustomerScreen({ navigation, route }: Props) {
         const phone: string | null = data.phone_number;
         setLocalNumber(phone?.startsWith('+880') ? phone.slice(4) : '');
       } catch {
-        Alert.alert('ত্রুটি', 'গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
+        Alert.alert(t('common.error'), t('editCustomer.loadError'));
       } finally {
         setLoadingCustomer(false);
       }
@@ -48,7 +50,7 @@ export default function EditCustomerScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e.message ?? 'তথ্য হালনাগাদ করতে সমস্যা হয়েছে');
+      Alert.alert(t('common.error'), e.message ?? t('editCustomer.saveError'));
     } finally {
       setSaving(false);
     }
@@ -60,42 +62,42 @@ export default function EditCustomerScreen({ navigation, route }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.fieldLabel}>নাম</Text>
+      <Text style={styles.fieldLabel}>{t('editCustomer.nameLabel')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="গ্রাহকের নাম"
+        placeholder={t('editCustomer.namePlaceholder')}
         value={name}
         onChangeText={setName}
         maxLength={80}
       />
 
-      <Text style={styles.fieldLabel}>ঠিকানা</Text>
+      <Text style={styles.fieldLabel}>{t('editCustomer.addressLabel')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="গ্রাহকের ঠিকানা"
+        placeholder={t('editCustomer.addressPlaceholder')}
         value={address}
         onChangeText={setAddress}
         maxLength={200}
         multiline
       />
 
-      <Text style={styles.fieldLabel}>ফোন নম্বর</Text>
+      <Text style={styles.fieldLabel}>{t('editCustomer.phoneLabel')}</Text>
       <View style={styles.phoneRow}>
         <View style={styles.phonePrefix}>
           <Text style={styles.phonePrefixText}>+880</Text>
         </View>
         <TextInput
           style={styles.phoneInput}
-          placeholder="1XXXXXXXXX"
+          placeholder={t('editCustomer.phonePlaceholder')}
           keyboardType="number-pad"
           value={localNumber}
-          onChangeText={(t) => setLocalNumber(toEnglishDigits(t).replace(/\D/g, '').slice(0, 10))}
+          onChangeText={(val) => setLocalNumber(toEnglishDigits(val).replace(/\D/g, '').slice(0, 10))}
           maxLength={10}
         />
       </View>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
-        {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>সংরক্ষণ করুন</Text>}
+        {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('common.save')}</Text>}
       </TouchableOpacity>
     </ScrollView>
   );

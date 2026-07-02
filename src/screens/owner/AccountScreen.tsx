@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import StatusPill from '../../components/StatusPill';
+import LanguageToggleCompact from '../../components/LanguageToggleCompact';
 import { useProfile } from '../../hooks/useProfile';
 import { uploadFile } from '../../utils/uploadFile';
 import { formatDate } from '../../utils/dateRelative';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
 interface Props {
@@ -16,6 +18,7 @@ interface Props {
 }
 
 export default function AccountScreen({ profile, onProfileUpdate }: Props) {
+  const { t } = useTranslation();
   const { saving, error, updateProfile } = useProfile(profile);
   const [ownerName, setOwnerName] = useState(profile.owner_name ?? '');
   const [shopName, setShopName] = useState(profile.shop_name ?? '');
@@ -25,7 +28,7 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
   async function handlePickPhoto() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('অনুমতি প্রয়োজন', 'ক্যামেরা ব্যবহারের অনুমতি দিন');
+      Alert.alert(t('addCustomer.cameraPermissionTitle'), t('addCustomer.cameraPermissionMessage'));
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -47,7 +50,7 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
       const updated = await updateProfile({ owner_photo_url: url });
       if (updated) onProfileUpdate(updated);
     } catch {
-      Alert.alert('ত্রুটি', 'ছবি আপলোড করতে সমস্যা হয়েছে');
+      Alert.alert(t('common.error'), t('account.photoUploadError'));
     } finally {
       setUploadingPhoto(false);
     }
@@ -57,7 +60,7 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
     const updated = await updateProfile({ owner_name: ownerName, shop_name: shopName });
     if (updated) {
       onProfileUpdate(updated);
-      Alert.alert('সংরক্ষিত হয়েছে', 'তথ্য হালনাগাদ করা হয়েছে');
+      Alert.alert(t('account.saved'), t('account.savedMessage'));
     }
   }
 
@@ -79,21 +82,26 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
       </TouchableOpacity>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>মালিকের তথ্য</Text>
+        <Text style={styles.sectionTitle}>{t('account.language')}</Text>
+        <LanguageToggleCompact />
+      </View>
 
-        <Text style={styles.fieldLabel}>মালিকের নাম</Text>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>{t('account.ownerInfo')}</Text>
+
+        <Text style={styles.fieldLabel}>{t('account.ownerNameLabel')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="আপনার নাম লিখুন"
+          placeholder={t('account.ownerNamePlaceholder')}
           value={ownerName}
           onChangeText={setOwnerName}
           maxLength={80}
         />
 
-        <Text style={styles.fieldLabel}>দোকানের নাম</Text>
+        <Text style={styles.fieldLabel}>{t('account.shopNameLabel')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="দোকানের নাম লিখুন"
+          placeholder={t('account.shopNamePlaceholder')}
           value={shopName}
           onChangeText={setShopName}
           maxLength={80}
@@ -103,33 +111,33 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
 
         {dirty && (
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
-            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>সংরক্ষণ করুন</Text>}
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>{t('common.save')}</Text>}
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>অ্যাকাউন্টের তথ্য</Text>
+        <Text style={styles.sectionTitle}>{t('account.accountInfo')}</Text>
 
         <View style={styles.row}>
-          <Text style={styles.label}>মোবাইল নম্বর</Text>
+          <Text style={styles.label}>{t('account.phoneNumber')}</Text>
           <Text style={styles.value}>{profile.phone_number}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>সাবস্ক্রিপশন</Text>
+          <Text style={styles.label}>{t('account.subscription')}</Text>
           <StatusPill status={(profile.subscription_status ?? 'active') as any} />
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>একাউন্ট তৈরি হয়েছে</Text>
+          <Text style={styles.label}>{t('account.createdAt')}</Text>
           <Text style={styles.value}>{formatDate(profile.created_at)}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>সর্বশেষ পেমেন্ট</Text>
-          <Text style={styles.value}>{profile.last_paid_date ? formatDate(profile.last_paid_date) : 'নেই'}</Text>
+          <Text style={styles.label}>{t('account.lastPaid')}</Text>
+          <Text style={styles.value}>{profile.last_paid_date ? formatDate(profile.last_paid_date) : t('account.none')}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>পরবর্তী পেমেন্টের তারিখ</Text>
-          <Text style={styles.value}>{profile.next_due_date ? formatDate(profile.next_due_date) : 'নেই'}</Text>
+          <Text style={styles.label}>{t('account.nextDue')}</Text>
+          <Text style={styles.value}>{profile.next_due_date ? formatDate(profile.next_due_date) : t('account.none')}</Text>
         </View>
       </View>
     </ScrollView>

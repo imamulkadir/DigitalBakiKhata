@@ -4,6 +4,8 @@ import {
   Alert, FlatList,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { useTranslation } from '../../i18n/LanguageContext';
+import { formatDate } from '../../utils/dateRelative';
 import type { Profile } from '../../hooks/useAuth';
 
 interface PendingOwner {
@@ -19,6 +21,7 @@ interface Props {
 }
 
 export default function PendingApprovalsTab({ adminProfile, adminToken }: Props) {
+  const { t } = useTranslation();
   const [owners, setOwners] = useState<PendingOwner[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export default function PendingApprovalsTab({ adminProfile, adminToken }: Props)
       if (data.error) throw new Error(data.error);
       await fetchPending();
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e.message);
+      Alert.alert(t('common.error'), e.message);
     } finally {
       setActionLoading(null);
     }
@@ -72,7 +75,7 @@ export default function PendingApprovalsTab({ adminProfile, adminToken }: Props)
           <View style={styles.info}>
             <Text style={styles.phone}>{item.phone_number}</Text>
             {item.shop_name && <Text style={styles.shop}>{item.shop_name}</Text>}
-            <Text style={styles.date}>{new Date(item.created_at).toLocaleDateString('bn-BD')}</Text>
+            <Text style={styles.date}>{formatDate(item.created_at)}</Text>
           </View>
           <View style={styles.buttons}>
             <TouchableOpacity
@@ -84,7 +87,7 @@ export default function PendingApprovalsTab({ adminProfile, adminToken }: Props)
               {actionLoading === item.id ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.btnText}>অনুমোদন করুন</Text>
+                <Text style={styles.btnText}>{t('admin.approve')}</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -93,14 +96,14 @@ export default function PendingApprovalsTab({ adminProfile, adminToken }: Props)
               disabled={actionLoading === item.id}
               activeOpacity={0.85}
             >
-              <Text style={[styles.btnText, { color: '#D32F2F' }]}>প্রত্যাখ্যান করুন</Text>
+              <Text style={[styles.btnText, { color: '#D32F2F' }]}>{t('admin.reject')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>কোনো অনুমোদনের অপেক্ষা নেই</Text>
+          <Text style={styles.emptyText}>{t('admin.noPending')}</Text>
         </View>
       }
     />

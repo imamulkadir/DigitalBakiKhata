@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export interface Transaction {
   id: string;
@@ -14,6 +15,7 @@ export interface Transaction {
 const PAGE_SIZE = 20;
 
 export function useTransactions(customerId: string) {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -38,7 +40,7 @@ export function useTransactions(customerId: string) {
       .range(from, from + PAGE_SIZE - 1);
 
     if (err) {
-      setError('লেনদেনের তথ্য লোড করতে সমস্যা হয়েছে');
+      setError(t('customerDetail.loadTransactionsError'));
     } else {
       const fetched = (data as Transaction[]) ?? [];
       setTransactions((prev) => (reset ? fetched : [...prev, ...fetched]));
@@ -46,7 +48,7 @@ export function useTransactions(customerId: string) {
       if (!reset) setPage((p) => p + 1);
     }
     setLoading(false);
-  }, [customerId, page]);
+  }, [customerId, page, t]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore) return;
@@ -75,9 +77,9 @@ export function useTransactions(customerId: string) {
       customer_id: customerId,
       ...params,
     });
-    if (err) throw new Error('লেনদেন সংরক্ষণ করতে সমস্যা হয়েছে');
+    if (err) throw new Error(t('transactionEntry.saveError'));
     await fetchTransactions(true);
-  }, [customerId, fetchTransactions]);
+  }, [customerId, fetchTransactions, t]);
 
   return { transactions, loading, loadingMore, hasMore, error, fetchTransactions, loadMore, addTransaction };
 }

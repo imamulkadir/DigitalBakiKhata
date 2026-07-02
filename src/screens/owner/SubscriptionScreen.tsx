@@ -7,37 +7,40 @@ import * as Clipboard from 'expo-clipboard';
 import { useSubscription } from '../../hooks/useSubscription';
 import StatusPill from '../../components/StatusPill';
 import { formatDate } from '../../utils/dateRelative';
+import { formatDigits } from '../../utils/currencyFormat';
+import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
 
 interface Props {
   profile: Profile;
 }
 
-const BKASH_NUMBER = '০১৭১৭৮৩৬৬৭২';
+const BKASH_NUMBER = '01717836672';
 
 export default function SubscriptionScreen({ profile }: Props) {
+  const { t } = useTranslation();
   const { submitting, claimed, error, submitPaymentClaim } = useSubscription(profile);
 
   async function copyBkashNumber() {
-    await Clipboard.setStringAsync('01717836672');
-    Alert.alert('কপি হয়েছে', 'বিকাশ নম্বর কপি করা হয়েছে');
+    await Clipboard.setStringAsync(BKASH_NUMBER);
+    Alert.alert(t('subscription.copiedTitle'), t('subscription.copiedMessage'));
   }
 
   const subStatus = (profile.subscription_status ?? 'active') as any;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>সাবস্ক্রিপশন</Text>
+      <Text style={styles.heading}>{t('subscription.title')}</Text>
 
       {/* Status */}
       <View style={styles.card}>
         <View style={styles.row}>
-          <Text style={styles.label}>অবস্থা</Text>
+          <Text style={styles.label}>{t('subscription.status')}</Text>
           <StatusPill status={subStatus} />
         </View>
         {profile.next_due_date && (
           <View style={[styles.row, { marginTop: 12 }]}>
-            <Text style={styles.label}>পরবর্তী পেমেন্টের তারিখ</Text>
+            <Text style={styles.label}>{t('subscription.nextDueDate')}</Text>
             <Text style={styles.value}>{formatDate(profile.next_due_date)}</Text>
           </View>
         )}
@@ -45,29 +48,29 @@ export default function SubscriptionScreen({ profile }: Props) {
 
       {/* Payment instructions */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>পেমেন্ট করার নিয়ম</Text>
-        <Text style={styles.step}>১. আপনার বিকাশ অ্যাপ খুলুন।</Text>
-        <Text style={styles.step}>২. "Send Money" বা "পাঠাও" নির্বাচন করুন।</Text>
-        <Text style={styles.step}>৩. নিচের নম্বরে ৳১০০ পাঠান:</Text>
+        <Text style={styles.sectionTitle}>{t('subscription.instructionsTitle')}</Text>
+        <Text style={styles.step}>{t('subscription.step1')}</Text>
+        <Text style={styles.step}>{t('subscription.step2')}</Text>
+        <Text style={styles.step}>{t('subscription.step3')}</Text>
 
         <TouchableOpacity style={styles.bkashBox} onPress={copyBkashNumber} activeOpacity={0.8}>
-          <Text style={styles.bkashNumber}>{BKASH_NUMBER}</Text>
-          <Text style={styles.copyHint}>চাপ দিয়ে কপি করুন</Text>
+          <Text style={styles.bkashNumber}>{formatDigits(BKASH_NUMBER)}</Text>
+          <Text style={styles.copyHint}>{t('subscription.copyHint')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.step}>৪. Reference-এ আপনার নিজের নম্বর লিখুন:</Text>
+        <Text style={styles.step}>{t('subscription.step4')}</Text>
         <View style={styles.refBox}>
-          <Text style={styles.refLabel}>এই নম্বরটি Reference-এ লিখুন</Text>
+          <Text style={styles.refLabel}>{t('subscription.refLabel')}</Text>
           <Text style={styles.refNumber}>{profile.phone_number}</Text>
         </View>
-        <Text style={styles.step}>৫. পাঠানো হলে নিচের বাটনে চাপ দিন।</Text>
+        <Text style={styles.step}>{t('subscription.step5')}</Text>
       </View>
 
       {/* Claim button */}
       {claimed ? (
         <View style={styles.claimedBox}>
-          <Text style={styles.claimedText}>✓ নিশ্চিতকরণের অপেক্ষায়</Text>
-          <Text style={styles.claimedSubtext}>অ্যাডমিন যাচাই করার পর আপনার সাবস্ক্রিপশন সক্রিয় হবে</Text>
+          <Text style={styles.claimedText}>{t('subscription.claimed')}</Text>
+          <Text style={styles.claimedSubtext}>{t('subscription.claimedSubtext')}</Text>
         </View>
       ) : (
         <>
@@ -81,7 +84,7 @@ export default function SubscriptionScreen({ profile }: Props) {
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.claimButtonText}>পাঠিয়েছি</Text>
+              <Text style={styles.claimButtonText}>{t('subscription.submit')}</Text>
             )}
           </TouchableOpacity>
         </>
