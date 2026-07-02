@@ -11,14 +11,17 @@ import CustomerListItem, { CustomerRow } from '../../components/CustomerListItem
 import { useCustomers } from '../../hooks/useCustomers';
 import { formatAmount } from '../../utils/currencyFormat';
 import { useTranslation } from '../../i18n/LanguageContext';
+import HeaderMenuOverlay from '../../components/HeaderMenuOverlay';
 import type { Profile } from '../../hooks/useAuth';
 
 type Props = {
   navigation: NativeStackNavigationProp<OwnerStackParamList, 'Home'>;
   profile: Profile;
+  onAccountPress: () => void;
+  onLogoutPress: () => void;
 };
 
-export default function HomeScreen({ navigation, profile }: Props) {
+export default function HomeScreen({ navigation, profile, onAccountPress, onLogoutPress }: Props) {
   const { t } = useTranslation();
   const { customers, loading, error, fetchCustomers } = useCustomers(profile.id);
   const [refreshing, setRefreshing] = useState(false);
@@ -108,6 +111,8 @@ export default function HomeScreen({ navigation, profile }: Props) {
           <Text style={styles.fabText}>+ {t('home.addCustomer')}</Text>
         </TouchableOpacity>
       )}
+
+      <HeaderMenuOverlay onAccountPress={onAccountPress} onLogoutPress={onLogoutPress} />
     </View>
   );
 }

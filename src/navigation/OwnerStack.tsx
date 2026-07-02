@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, Alert } from 'react-native';
+import { TouchableOpacity, Text, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/owner/HomeScreen';
 import AddCustomerScreen from '../screens/owner/AddCustomerScreen';
@@ -8,8 +8,8 @@ import EditCustomerScreen from '../screens/owner/EditCustomerScreen';
 import TransactionEntryScreen from '../screens/owner/TransactionEntryScreen';
 import SubscriptionScreen from '../screens/owner/SubscriptionScreen';
 import AccountScreen from '../screens/owner/AccountScreen';
-import AccountMenuButton from '../components/AccountMenuButton';
-import NotificationBellButton from '../components/NotificationBellButton';
+import HeaderTriggerIcons from '../components/HeaderTriggerIcons';
+import { HeaderMenuProvider } from '../context/HeaderMenuContext';
 import { useTranslation } from '../i18n/LanguageContext';
 import type { Profile } from '../hooks/useAuth';
 
@@ -42,30 +42,29 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
   }
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#FFFFFF' },
-        headerTintColor: '#D32F2F',
-        headerTitleStyle: { fontWeight: '500', fontSize: 18 },
-      }}
-    >
+    <HeaderMenuProvider ownerId={profile.id}>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: '#FFFFFF' },
+          headerTintColor: '#D32F2F',
+          headerTitleStyle: { fontWeight: '500', fontSize: 18 },
+        }}
+      >
       <Stack.Screen
         name="Home"
         options={({ navigation }) => ({
           title: t('home.title'),
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <NotificationBellButton ownerId={profile.id} />
-              <AccountMenuButton
-                photoUrl={profile.owner_photo_url}
-                onAccountPress={() => navigation.navigate('Account')}
-                onLogoutPress={confirmLogout}
-              />
-            </View>
-          ),
+          headerRight: () => <HeaderTriggerIcons photoUrl={profile.owner_photo_url} />,
         })}
       >
-        {(props) => <HomeScreen {...props} profile={profile} />}
+        {(props) => (
+          <HomeScreen
+            {...props}
+            profile={profile}
+            onAccountPress={() => props.navigation.navigate('Account')}
+            onLogoutPress={confirmLogout}
+          />
+        )}
       </Stack.Screen>
       <Stack.Screen name="AddCustomer" options={{ title: t('addCustomer.heading') }}>
         {(props) => <AddCustomerScreen {...props} profile={profile} />}
@@ -93,6 +92,7 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
       <Stack.Screen name="Account" options={{ title: t('account.title') }}>
         {(props) => <AccountScreen {...props} profile={profile} onProfileUpdate={onProfileUpdate} />}
       </Stack.Screen>
-    </Stack.Navigator>
+      </Stack.Navigator>
+    </HeaderMenuProvider>
   );
 }
