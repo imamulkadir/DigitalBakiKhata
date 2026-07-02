@@ -3,7 +3,11 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useTranslation } from '../i18n/LanguageContext';
 import type { Language } from '../i18n/translations';
 
-export default function LanguageToggleCompact() {
+interface Props {
+  accentColor?: string;
+}
+
+export default function LanguageToggleCompact({ accentColor = '#D32F2F' }: Props) {
   const { language, setLanguage, t } = useTranslation();
 
   function Segment({ lang }: { lang: Language }) {
@@ -14,7 +18,7 @@ export default function LanguageToggleCompact() {
         onPress={() => setLanguage(lang)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+        <Text style={[styles.segmentText, active && { color: accentColor }]}>
           {lang === 'bn' ? t('languageToggle.bn') : t('languageToggle.en')}
         </Text>
       </TouchableOpacity>
@@ -54,8 +58,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#757575',
     fontWeight: '500',
-  },
-  segmentTextActive: {
-    color: '#D32F2F',
   },
 });

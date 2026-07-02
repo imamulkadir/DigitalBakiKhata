@@ -8,6 +8,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const MAX_PIN_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -41,14 +44,6 @@ serve(async (req) => {
       );
     }
 
-    const pinValid = bcrypt.compareSync(pin, profile.pin_hash);
-    if (!pinValid) {
-      return new Response(
-        JSON.stringify({ error: 'ফোন নম্বর বা PIN ভুল' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     if (profile.status === 'pending_approval') {
       return new Response(
         JSON.stringify({ error: 'আপনার অ্যাকাউন্ট এখনও অনুমোদিত হয়নি', status: 'pending_approval' }),
@@ -66,6 +61,48 @@ serve(async (req) => {
         JSON.stringify({ error: 'আপনার অ্যাকাউন্ট স্থগিত করা হয়েছে', status: 'suspended' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (profile.pin_reset_required) {
+      return new Response(
+        JSON.stringify({ error: 'আপনার PIN রিসেট করা হয়েছে, নতুন PIN সেট করুন', status: 'pin_reset_required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (profile.pin_locked_until && new Date(profile.pin_locked_until) > new Date()) {
+      return new Response(
+        JSON.stringify({ error: 'অনেকবার ভুল PIN দেওয়া হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন', status: 'locked' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const pinValid = bcrypt.compareSync(pin, profile.pin_hash);
+    if (!pinValid) {
+      const attempts = (profile.failed_pin_attempts ?? 0) + 1;
+      if (attempts >= MAX_PIN_ATTEMPTS) {
+        const lockedUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000).toISOString();
+        await supabaseAdmin
+          .from('profiles')
+          .update({ failed_pin_attempts: 0, pin_locked_until: lockedUntil })
+          .eq('id', profile.id);
+        return new Response(
+          JSON.stringify({ error: 'অনেকবার ভুল PIN দেওয়া হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন', status: 'locked' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      await supabaseAdmin.from('profiles').update({ failed_pin_attempts: attempts }).eq('id', profile.id);
+      return new Response(
+        JSON.stringify({ error: 'ফোন নম্বর বা PIN ভুল' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (profile.failed_pin_attempts > 0 || profile.pin_locked_until) {
+      await supabaseAdmin
+        .from('profiles')
+        .update({ failed_pin_attempts: 0, pin_locked_until: null })
+        .eq('id', profile.id);
     }
 
     const now = Math.floor(Date.now() / 1000);

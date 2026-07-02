@@ -29,6 +29,7 @@ export default function AllOwnersTab({ adminToken }: Props) {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   async function fetchOwners() {
     setLoading(true);
@@ -44,6 +45,39 @@ export default function AllOwnersTab({ adminToken }: Props) {
   }
 
   useEffect(() => { fetchOwners(); }, []);
+
+  function confirmResetPin(owner: OwnerRow) {
+    Alert.alert(
+      t('admin.resetPinConfirmTitle'),
+      t('admin.resetPinConfirmMessage', { phone: owner.phone_number }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.resetPin'), onPress: () => handleResetPin(owner.id) },
+      ]
+    );
+  }
+
+  async function handleResetPin(ownerId: string) {
+    setResettingId(ownerId);
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/reset-owner-pin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`,
+          'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+        },
+        body: JSON.stringify({ owner_id: ownerId }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      Alert.alert(t('admin.resetPinDoneTitle'), t('admin.resetPinDoneMessage'));
+    } catch (e: any) {
+      Alert.alert(t('common.error'), e.message ?? t('admin.resetPinError'));
+    } finally {
+      setResettingId(null);
+    }
+  }
 
   function confirmDelete(owner: OwnerRow) {
     Alert.alert(
@@ -121,18 +155,32 @@ export default function AllOwnersTab({ adminToken }: Props) {
                 <Text style={styles.meta}>{t('admin.nextDue')}: {formatDate(item.next_due_date)}</Text>
               )}
             </View>
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => confirmDelete(item)}
-              disabled={deletingId === item.id}
-              activeOpacity={0.7}
-            >
-              {deletingId === item.id ? (
-                <ActivityIndicator size="small" color="#D32F2F" />
-              ) : (
-                <Text style={styles.deleteBtnText}>{t('admin.delete')}</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => confirmResetPin(item)}
+                disabled={resettingId === item.id}
+                activeOpacity={0.7}
+              >
+                {resettingId === item.id ? (
+                  <ActivityIndicator size="small" color="#1565C0" />
+                ) : (
+                  <Text style={styles.resetBtnText}>{t('admin.resetPin')}</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => confirmDelete(item)}
+                disabled={deletingId === item.id}
+                activeOpacity={0.7}
+              >
+                {deletingId === item.id ? (
+                  <ActivityIndicator size="small" color="#D32F2F" />
+                ) : (
+                  <Text style={styles.deleteBtnText}>{t('admin.delete')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         ListEmptyComponent={
@@ -162,8 +210,13 @@ const styles = StyleSheet.create({
   phone: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   shop: { fontSize: 13, color: '#757575', marginTop: 2 },
   meta: { fontSize: 12, color: '#9E9E9E' },
+  actions: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  resetBtn: {
+    paddingVertical: 6, paddingHorizontal: 12,
+    borderRadius: 8, borderWidth: 1, borderColor: '#1565C0',
+  },
+  resetBtnText: { fontSize: 13, color: '#1565C0', fontWeight: '500' },
   deleteBtn: {
-    marginTop: 10, alignSelf: 'flex-start',
     paddingVertical: 6, paddingHorizontal: 12,
     borderRadius: 8, borderWidth: 1, borderColor: '#D32F2F',
   },

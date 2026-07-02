@@ -25,6 +25,7 @@ interface AuthState {
 
 const STORAGE_KEY = 'baki_session';
 const LAST_PHONE_KEY = 'baki_last_phone';
+const REMEMBERED_PIN_KEY = 'baki_remembered_pin';
 
 export async function saveLastPhoneNumber(localNumber: string): Promise<void> {
   await SecureStore.setItemAsync(LAST_PHONE_KEY, localNumber);
@@ -32,6 +33,18 @@ export async function saveLastPhoneNumber(localNumber: string): Promise<void> {
 
 export async function loadLastPhoneNumber(): Promise<string | null> {
   return SecureStore.getItemAsync(LAST_PHONE_KEY);
+}
+
+export async function saveRememberedPin(pin: string): Promise<void> {
+  await SecureStore.setItemAsync(REMEMBERED_PIN_KEY, pin);
+}
+
+export async function loadRememberedPin(): Promise<string | null> {
+  return SecureStore.getItemAsync(REMEMBERED_PIN_KEY);
+}
+
+export async function clearRememberedPin(): Promise<void> {
+  await SecureStore.deleteItemAsync(REMEMBERED_PIN_KEY);
 }
 
 export async function loginUser(phone_number: string, pin: string): Promise<{ profile: Profile; access_token: string } | { error: string; status?: string }> {
@@ -56,6 +69,19 @@ export async function registerUser(phone_number: string, pin: string, shop_name?
       'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
     },
     body: JSON.stringify({ phone_number, pin, shop_name }),
+  });
+  return res.json();
+}
+
+export async function setNewPin(phone_number: string, new_pin: string): Promise<{ success: true } | { error: string }> {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/set-new-pin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+      'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ phone_number, new_pin }),
   });
   return res.json();
 }

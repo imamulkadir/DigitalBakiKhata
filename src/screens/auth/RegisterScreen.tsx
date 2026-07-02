@@ -8,6 +8,8 @@ import { AuthStackParamList } from '../../navigation/AuthStack';
 import { registerUser } from '../../hooks/useAuth';
 import { isValidBDPhone, toEnglishDigits } from '../../utils/phoneValidation';
 import PinInput from '../../components/PinInput';
+import AuthHeader from '../../components/AuthHeader';
+import AuthLanguageCorner from '../../components/AuthLanguageCorner';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 type Props = { navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'> };
@@ -65,48 +67,52 @@ export default function RegisterScreen({ navigation }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>{t('register.title')}</Text>
-        <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
+    <View style={{ flex: 1 }}>
+      <AuthLanguageCorner />
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <AuthHeader />
 
-        <View style={styles.phoneRow}>
-          <View style={styles.phonePrefix}>
-            <Text style={styles.phonePrefixText}>+880</Text>
+          <Text style={styles.screenSubtitle}>{t('register.subtitle')}</Text>
+
+          <View style={styles.phoneRow}>
+            <View style={styles.phonePrefix}>
+              <Text style={styles.phonePrefixText}>+880</Text>
+            </View>
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="1XXXXXXXXX"
+              keyboardType="number-pad"
+              value={localNumber}
+              onChangeText={(val) => setLocalNumber(toEnglishDigits(val).replace(/\D/g, '').slice(0, 10))}
+              autoComplete="tel"
+              maxLength={10}
+            />
           </View>
+
           <TextInput
-            style={styles.phoneInput}
-            placeholder="1XXXXXXXXX"
-            keyboardType="number-pad"
-            value={localNumber}
-            onChangeText={(val) => setLocalNumber(toEnglishDigits(val).replace(/\D/g, '').slice(0, 10))}
-            autoComplete="tel"
-            maxLength={10}
+            style={styles.input}
+            placeholder={t('register.shopNamePlaceholder')}
+            value={shopName}
+            onChangeText={setShopName}
+            maxLength={80}
           />
-        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('register.shopNamePlaceholder')}
-          value={shopName}
-          onChangeText={setShopName}
-          maxLength={80}
-        />
+          <PinInput value={pin} onChange={setPin} secureTextEntry />
+          <PinInput value={confirmPin} onChange={setConfirmPin} secureTextEntry />
 
-        <PinInput value={pin} onChange={setPin} secureTextEntry />
-        <PinInput value={confirmPin} onChange={setConfirmPin} secureTextEntry />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading} activeOpacity={0.85}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('register.submit')}</Text>}
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading} activeOpacity={0.85}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('register.submit')}</Text>}
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.replace('Login')} style={styles.link}>
-          <Text style={styles.linkText}>{t('register.loginLink')}</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <TouchableOpacity onPress={() => navigation.replace('Login')} style={styles.link}>
+            <Text style={styles.linkText}>{t('register.loginLink')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -117,18 +123,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     justifyContent: 'center',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '500',
-    color: '#D32F2F',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
+  screenSubtitle: {
     fontSize: 16,
     color: '#757575',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 18,
   },
   input: {
     backgroundColor: '#FFFFFF',
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: '#1B8A5A',
     borderRadius: 30,
     paddingVertical: 16,
     alignItems: 'center',

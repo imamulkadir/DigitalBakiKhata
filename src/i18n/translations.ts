@@ -1,6 +1,10 @@
 export type Language = "bn" | "en";
 
 const bn = {
+  brand: {
+    appName: "বাকি খাতা",
+    subtitle: "বাকির হিসাব এখন আরও সহজ",
+  },
   common: {
     error: "ত্রুটি",
     cancel: "বাতিল",
@@ -11,7 +15,6 @@ const bn = {
     networkError: "নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন",
   },
   login: {
-    title: "বাকি খাতা",
     subtitle: "আপনার অ্যাকাউন্টে প্রবেশ করুন",
     phonePlaceholder: "1XXXXXXXXX",
     pinPlaceholder: "৬ সংখ্যার PIN",
@@ -20,9 +23,9 @@ const bn = {
     loginFailed: "লগইন করতে সমস্যা হয়েছে",
     submit: "প্রবেশ করুন",
     registerLink: "নতুন অ্যাকাউন্ট খুলুন",
+    rememberPin: "পরবর্তীতে মনে রাখুন",
   },
   register: {
-    title: "বাকি খাতা",
     subtitle: "নতুন অ্যাকাউন্ট খুলুন",
     shopNamePlaceholder: "দোকানের নাম (ঐচ্ছিক)",
     invalidPhone: "সঠিক বাংলাদেশি ফোন নম্বর দিন (+৮৮০...)",
@@ -39,6 +42,12 @@ const bn = {
       "আপনার অ্যাকাউন্ট যাচাই করা হচ্ছে। অনুমোদনের পর আপনি লগইন করতে পারবেন।",
     refresh: "রিফ্রেশ করুন",
     loginLink: "লগইন করুন",
+  },
+  setNewPin: {
+    subtitle: "নতুন ৬ সংখ্যার PIN সেট করুন",
+    submit: "PIN সংরক্ষণ করুন",
+    successTitle: "PIN পরিবর্তন হয়েছে",
+    successMessage: "আপনার নতুন PIN দিয়ে এখন লগইন করুন",
   },
   home: {
     title: "বাকি খাতা",
@@ -201,6 +210,12 @@ const bn = {
     deleteConfirmMessage:
       "{phone} সম্পূর্ণভাবে মুছে ফেলা হবে, তাদের সব গ্রাহক ও লেনদেনের তথ্যসহ। এই কাজ ফিরিয়ে নেওয়া যাবে না।",
     deleteError: "অ্যাকাউন্ট মুছতে সমস্যা হয়েছে",
+    resetPin: "PIN রিসেট করুন",
+    resetPinConfirmTitle: "PIN রিসেট করবেন?",
+    resetPinConfirmMessage: "{phone}-এর PIN রিসেট হবে, পরবর্তী লগইনে নতুন PIN সেট করতে হবে।",
+    resetPinDoneTitle: "PIN রিসেট হয়েছে",
+    resetPinDoneMessage: "দোকানদারকে জানান, পরবর্তী লগইনে নতুন PIN সেট করতে বলা হবে।",
+    resetPinError: "PIN রিসেট করতে সমস্যা হয়েছে",
   },
   announcements: {
     bellTitle: "নোটিফিকেশন",
@@ -238,6 +253,10 @@ const bn = {
 };
 
 const en: typeof bn = {
+  brand: {
+    appName: "Baki Khata",
+    subtitle: "Due Tracking Made Simple",
+  },
   common: {
     error: "Error",
     cancel: "Cancel",
@@ -248,7 +267,6 @@ const en: typeof bn = {
     networkError: "Network error, please try again",
   },
   login: {
-    title: "Baki Khata",
     subtitle: "Sign in to your account",
     phonePlaceholder: "1XXXXXXXXX",
     pinPlaceholder: "6-digit PIN",
@@ -257,9 +275,9 @@ const en: typeof bn = {
     loginFailed: "Could not log in",
     submit: "Sign In",
     registerLink: "Create a new account",
+    rememberPin: "Remember for next time",
   },
   register: {
-    title: "Baki Khata",
     subtitle: "Create a new account",
     shopNamePlaceholder: "Shop name (optional)",
     invalidPhone: "Enter a valid Bangladeshi phone number (+880...)",
@@ -275,6 +293,12 @@ const en: typeof bn = {
     message: "Your account is being verified. You can log in once approved.",
     refresh: "Refresh",
     loginLink: "Sign in",
+  },
+  setNewPin: {
+    subtitle: "Set a new 6-digit PIN",
+    submit: "Save PIN",
+    successTitle: "PIN Changed",
+    successMessage: "Log in now with your new PIN",
   },
   home: {
     title: "Baki Khata",
@@ -437,6 +461,12 @@ const en: typeof bn = {
     deleteConfirmMessage:
       "{phone} will be permanently deleted, along with all their customers and transactions. This cannot be undone.",
     deleteError: "Could not delete account",
+    resetPin: "Reset PIN",
+    resetPinConfirmTitle: "Reset PIN?",
+    resetPinConfirmMessage: "{phone}'s PIN will be reset — they'll need to set a new one on next login.",
+    resetPinDoneTitle: "PIN Reset",
+    resetPinDoneMessage: "Let the owner know they'll be asked to set a new PIN on their next login.",
+    resetPinError: "Could not reset PIN",
   },
   announcements: {
     bellTitle: "Notifications",
