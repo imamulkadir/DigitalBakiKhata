@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, Image, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity, Text, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/owner/HomeScreen';
 import AddCustomerScreen from '../screens/owner/AddCustomerScreen';
@@ -8,6 +8,7 @@ import EditCustomerScreen from '../screens/owner/EditCustomerScreen';
 import TransactionEntryScreen from '../screens/owner/TransactionEntryScreen';
 import SubscriptionScreen from '../screens/owner/SubscriptionScreen';
 import AccountScreen from '../screens/owner/AccountScreen';
+import AccountMenuButton from '../components/AccountMenuButton';
 import type { Profile } from '../hooks/useAuth';
 
 export type OwnerStackParamList = {
@@ -36,14 +37,6 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
     ]);
   }
 
-  function openAccountMenu(navigation: { navigate: (screen: 'Account') => void }) {
-    Alert.alert('', '', [
-      { text: 'অ্যাকাউন্ট', onPress: () => navigation.navigate('Account') },
-      { text: 'লগআউট', style: 'destructive', onPress: confirmLogout },
-      { text: 'বাতিল', style: 'cancel' },
-    ]);
-  }
-
   return (
     <Stack.Navigator
       screenOptions={{
@@ -57,15 +50,11 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
         options={({ navigation }) => ({
           title: 'বাকি খাতা',
           headerRight: () => (
-            <TouchableOpacity onPress={() => openAccountMenu(navigation)} activeOpacity={0.7}>
-              {profile.owner_photo_url ? (
-                <Image source={{ uri: profile.owner_photo_url }} style={headerStyles.avatar} />
-              ) : (
-                <View style={headerStyles.avatarPlaceholder}>
-                  <Text style={headerStyles.avatarIcon}>👤</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            <AccountMenuButton
+              photoUrl={profile.owner_photo_url}
+              onAccountPress={() => navigation.navigate('Account')}
+              onLogoutPress={confirmLogout}
+            />
           ),
         })}
       >
@@ -100,12 +89,3 @@ export default function OwnerStack({ profile, onLogout, onProfileUpdate }: Props
     </Stack.Navigator>
   );
 }
-
-const headerStyles = StyleSheet.create({
-  avatar: { width: 32, height: 32, borderRadius: 16 },
-  avatarPlaceholder: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#E0E0E0', alignItems: 'center', justifyContent: 'center',
-  },
-  avatarIcon: { fontSize: 16 },
-});
