@@ -8,6 +8,7 @@ import StatusPill from '../../components/StatusPill';
 import LanguageToggleCompact from '../../components/LanguageToggleCompact';
 import { useProfile } from '../../hooks/useProfile';
 import { uploadFile } from '../../utils/uploadFile';
+import { compressImage } from '../../utils/compressImage';
 import { formatDate } from '../../utils/dateRelative';
 import { useTranslation } from '../../i18n/LanguageContext';
 import type { Profile } from '../../hooks/useAuth';
@@ -41,8 +42,9 @@ export default function AccountScreen({ profile, onProfileUpdate }: Props) {
 
     setUploadingPhoto(true);
     try {
+      const compressedUri = await compressImage(result.assets[0].uri);
       const url = await uploadFile(
-        result.assets[0].uri,
+        compressedUri,
         'customer-photos',
         `${profile.id}/owner_avatar_${Date.now()}.jpg`,
         'image/jpeg'

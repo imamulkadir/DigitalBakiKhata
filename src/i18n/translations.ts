@@ -42,7 +42,9 @@ const bn = {
   },
   home: {
     title: "বাকি খাতা",
+    totalCustomers: "মোট গ্রাহক",
     totalDue: "আজকের মোট বাকি",
+    customersWithDue: "বাকিতে থাকা গ্রাহক",
     loadError: "গ্রাহক তালিকা লোড করতে সমস্যা হয়েছে",
     emptyList: "এখনও কোনো গ্রাহক যোগ করা হয়নি",
     addFirstCustomer: "প্রথম গ্রাহক যোগ করুন",
@@ -276,7 +278,9 @@ const en: typeof bn = {
   },
   home: {
     title: "Baki Khata",
+    totalCustomers: "Total Customers",
     totalDue: "Today's Total Due",
+    customersWithDue: "Customers with Due",
     loadError: "Could not load customer list",
     emptyList: "No customers added yet",
     addFirstCustomer: "Add first customer",

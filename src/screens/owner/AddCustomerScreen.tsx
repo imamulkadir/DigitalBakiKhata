@@ -10,6 +10,7 @@ import VoiceRecorder from '../../components/VoiceRecorder';
 import { useCustomers } from '../../hooks/useCustomers';
 import { supabase } from '../../lib/supabase';
 import { uploadFile } from '../../utils/uploadFile';
+import { compressImage } from '../../utils/compressImage';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { formatNumber } from '../../utils/currencyFormat';
 import type { Profile } from '../../hooks/useAuth';
@@ -61,8 +62,9 @@ export default function AddCustomerScreen({ navigation, profile }: Props) {
       let voice_tag_url: string | undefined;
 
       if (photoUri) {
+        const compressedUri = await compressImage(photoUri);
         photo_url = await uploadFile(
-          photoUri,
+          compressedUri,
           'customer-photos',
           `${profile.id}/${Date.now()}.jpg`,
           'image/jpeg'

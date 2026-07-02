@@ -36,6 +36,7 @@ export default function HomeScreen({ navigation, profile, onAccountPress, onLogo
   }
 
   const totalBaki = customers.reduce((sum, c) => sum + (c.balance > 0 ? c.balance : 0), 0);
+  const customersWithDue = customers.filter((c) => c.balance > 0).length;
   const isOverdue = profile.subscription_status === 'overdue';
   const isDueSoon = profile.subscription_status === 'due_soon';
 
@@ -64,10 +65,11 @@ export default function HomeScreen({ navigation, profile, onAccountPress, onLogo
         </View>
       )}
 
-      {/* Total balance summary */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>{t('home.totalDue')}</Text>
-        <Text style={styles.summaryAmount}>৳{formatAmount(totalBaki)}</Text>
+      {/* Stats row */}
+      <View style={styles.statsRow}>
+        <StatCard label={t('home.totalCustomers')} value={String(customers.length)} color="#388E3C" />
+        <StatCard label={t('home.totalDue')} value={`৳${formatAmount(totalBaki)}`} color="#D32F2F" />
+        <StatCard label={t('home.customersWithDue')} value={String(customersWithDue)} color="#E65100" />
       </View>
 
       {/* Customer list */}
@@ -117,6 +119,15 @@ export default function HomeScreen({ navigation, profile, onAccountPress, onLogo
   );
 }
 
+function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <View style={[styles.statCard, { borderTopColor: color }]}>
+      <Text style={[styles.statValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   overdueBanner: {
@@ -139,20 +150,16 @@ const styles = StyleSheet.create({
   bannerActions: { flexDirection: 'row', alignItems: 'center' },
   bannerLink: { color: '#1565C0', fontSize: 13, fontWeight: '500' },
   bannerDismiss: { color: '#757575', fontSize: 16 },
-  summaryCard: {
-    margin: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+  statsRow: {
+    flexDirection: 'row', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, gap: 10,
   },
-  summaryLabel: { fontSize: 15, color: '#757575', marginBottom: 6 },
-  summaryAmount: { fontSize: 36, fontWeight: '500', color: '#D32F2F' },
+  statCard: {
+    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12,
+    padding: 14, alignItems: 'center',
+    borderTopWidth: 3, elevation: 1,
+  },
+  statValue: { fontSize: 20, fontWeight: '500', marginBottom: 4 },
+  statLabel: { fontSize: 11, color: '#757575', textAlign: 'center' },
   listContent: { paddingBottom: 100 },
   empty: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
