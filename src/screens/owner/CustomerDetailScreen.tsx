@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Linking, Alert, Modal,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { OwnerStackParamList } from '../../navigation/OwnerStack';
@@ -61,8 +61,11 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
 
   async function playVoiceTag() {
     if (!customer?.voice_tag_url) return;
-    const { sound } = await Audio.Sound.createAsync({ uri: customer.voice_tag_url });
-    await sound.playAsync();
+    const player = createAudioPlayer(customer.voice_tag_url);
+    player.play();
+    player.addListener('playbackStatusUpdate', (status) => {
+      if (status.didJustFinish) player.remove();
+    });
   }
 
   function sendReminder() {
@@ -169,12 +172,17 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
 function TransactionRow({ item }: { item: Transaction }) {
   const [playing, setPlaying] = useState(false);
 
-  async function playVoice() {
+  function playVoice() {
     if (!item.voice_note_url || playing) return;
     setPlaying(true);
-    const { sound } = await Audio.Sound.createAsync({ uri: item.voice_note_url });
-    await sound.playAsync();
-    sound.setOnPlaybackStatusUpdate((s) => { if (s.isLoaded && s.didJustFinish) setPlaying(false); });
+    const player = createAudioPlayer(item.voice_note_url);
+    player.play();
+    player.addListener('playbackStatusUpdate', (status) => {
+      if (status.didJustFinish) {
+        setPlaying(false);
+        player.remove();
+      }
+    });
   }
 
   return (

@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { Audio } from 'expo-av';
+import {
+  useAudioRecorder, RecordingPresets, setAudioModeAsync,
+  requestRecordingPermissionsAsync, createAudioPlayer, AudioPlayer,
+} from 'expo-audio';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface Props {
@@ -12,20 +15,18 @@ interface Props {
 export default function VoiceRecorder({ onRecorded, existingUri, label }: Props) {
   const { t } = useTranslation();
   const displayLabel = label ?? t('addCustomer.recordName');
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedUri, setRecordedUri] = useState<string | null>(existingUri ?? null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const playerRef = useRef<AudioPlayer | null>(null);
 
   async function startRecording() {
     try {
-      await Audio.requestPermissionsAsync();
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
+      await requestRecordingPermissionsAsync();
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setIsRecording(true);
     } catch (e) {
       console.error('Recording error', e);
@@ -33,10 +34,9 @@ export default function VoiceRecorder({ onRecorded, existingUri, label }: Props)
   }
 
   async function stopRecording() {
-    if (!recording) return;
     try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      await recorder.stop();
+      const uri = recorder.uri;
       if (uri) {
         setRecordedUri(uri);
         onRecorded(uri);
@@ -44,10 +44,6 @@ export default function VoiceRecorder({ onRecorded, existingUri, label }: Props)
     } catch (e) {
       console.error('Stop recording error', e);
     } finally {
-      // Always clear, even if stopAndUnloadAsync throws — otherwise the
-      // native recording object is left dangling and every future
-      // start/stop tap silently no-ops.
-      setRecording(null);
       setIsRecording(false);
     }
   }
@@ -55,13 +51,15 @@ export default function VoiceRecorder({ onRecorded, existingUri, label }: Props)
   async function playRecording() {
     if (!recordedUri || isPlaying) return;
     try {
-      const { sound } = await Audio.Sound.createAsync({ uri: recordedUri });
-      soundRef.current = sound;
+      const player = createAudioPlayer(recordedUri);
+      playerRef.current = player;
       setIsPlaying(true);
-      await sound.playAsync();
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
+      player.play();
+      player.addListener('playbackStatusUpdate', (status) => {
+        if (status.didJustFinish) {
           setIsPlaying(false);
+          player.remove();
+          if (playerRef.current === player) playerRef.current = null;
         }
       });
     } catch (e) {
