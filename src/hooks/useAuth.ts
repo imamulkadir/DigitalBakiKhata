@@ -8,7 +8,11 @@ export interface Profile {
   role: 'super_admin' | 'owner' | 'staff';
   status: 'pending_approval' | 'active' | 'rejected' | 'suspended';
   shop_name: string | null;
+  owner_name: string | null;
+  owner_photo_url: string | null;
   subscription_status: 'active' | 'due_soon' | 'overdue' | null;
+  created_at: string;
+  last_paid_date: string | null;
   next_due_date: string | null;
   expo_push_token: string | null;
 }
@@ -20,6 +24,15 @@ interface AuthState {
 }
 
 const STORAGE_KEY = 'baki_session';
+const LAST_PHONE_KEY = 'baki_last_phone';
+
+export async function saveLastPhoneNumber(localNumber: string): Promise<void> {
+  await SecureStore.setItemAsync(LAST_PHONE_KEY, localNumber);
+}
+
+export async function loadLastPhoneNumber(): Promise<string | null> {
+  return SecureStore.getItemAsync(LAST_PHONE_KEY);
+}
 
 export async function loginUser(phone_number: string, pin: string): Promise<{ profile: Profile; access_token: string } | { error: string; status?: string }> {
   const res = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/login`, {

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
-import { loginUser, saveSession, Profile } from '../../hooks/useAuth';
+import { loginUser, saveSession, saveLastPhoneNumber, loadLastPhoneNumber, Profile } from '../../hooks/useAuth';
 import { isValidBDPhone, toEnglishDigits } from '../../utils/phoneValidation';
 import PinInput from '../../components/PinInput';
 
@@ -20,6 +20,10 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const phone = `+880${localNumber}`;
+
+  useEffect(() => {
+    loadLastPhoneNumber().then((saved) => { if (saved) setLocalNumber(saved); });
+  }, []);
 
   async function handleLogin() {
     setError('');
@@ -54,6 +58,7 @@ export default function LoginScreen({ navigation, onLogin }: Props) {
 
     const { profile, access_token } = result as { profile: Profile; access_token: string };
     await saveSession(access_token, profile);
+    await saveLastPhoneNumber(localNumber);
     onLogin(profile, access_token);
   }
 

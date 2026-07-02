@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './AuthStack';
 import OwnerStack from './OwnerStack';
 import AdminStack from './AdminStack';
-import { loadSession, clearSession, Profile } from '../hooks/useAuth';
+import { loadSession, saveSession, clearSession, Profile } from '../hooks/useAuth';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '../lib/supabase';
 
@@ -46,6 +46,11 @@ export default function RootNavigator() {
     setToken(t);
   }
 
+  async function handleProfileUpdate(p: Profile) {
+    setProfile(p);
+    if (token) await saveSession(token, p);
+  }
+
   async function handleLogout() {
     await clearSession();
     setProfile(null);
@@ -67,7 +72,7 @@ export default function RootNavigator() {
       ) : profile.role === 'super_admin' ? (
         <AdminStack profile={profile} token={token!} onLogout={handleLogout} />
       ) : (
-        <OwnerStack profile={profile} onLogout={handleLogout} />
+        <OwnerStack profile={profile} onLogout={handleLogout} onProfileUpdate={handleProfileUpdate} />
       )}
     </NavigationContainer>
   );

@@ -31,13 +31,21 @@ export default function VoiceRecorder({ onRecorded, existingUri, label = 'না
 
   async function stopRecording() {
     if (!recording) return;
-    setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    setRecording(null);
-    if (uri) {
-      setRecordedUri(uri);
-      onRecorded(uri);
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      if (uri) {
+        setRecordedUri(uri);
+        onRecorded(uri);
+      }
+    } catch (e) {
+      console.error('Stop recording error', e);
+    } finally {
+      // Always clear, even if stopAndUnloadAsync throws — otherwise the
+      // native recording object is left dangling and every future
+      // start/stop tap silently no-ops.
+      setRecording(null);
+      setIsRecording(false);
     }
   }
 

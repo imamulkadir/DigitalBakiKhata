@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, Image, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Linking, Alert,
+  ActivityIndicator, Linking, Alert, Modal,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Audio } from 'expo-av';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { OwnerStackParamList } from '../../navigation/OwnerStack';
 import BalanceBadge from '../../components/BalanceBadge';
 import { useTransactions, Transaction } from '../../hooks/useTransactions';
 import { getCustomerDetail } from '../../hooks/useCustomers';
-import { relativeDate } from '../../utils/dateRelative';
+import { formatDateTime } from '../../utils/dateRelative';
 import { formatAmount } from '../../utils/currencyFormat';
 import type { Profile } from '../../hooks/useAuth';
 
@@ -26,6 +26,8 @@ interface CustomerDetail {
   photo_url: string | null;
   voice_tag_url: string | null;
   fallback_label: string | null;
+  name: string | null;
+  address: string | null;
   phone_number: string | null;
   balance: number;
 }
@@ -34,21 +36,26 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
   const { customerId } = route.params;
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [loadingCustomer, setLoadingCustomer] = useState(true);
+  const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const { transactions, loading, loadingMore, hasMore, fetchTransactions, loadMore } = useTransactions(customerId);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await getCustomerDetail(customerId);
-        setCustomer(data as CustomerDetail);
-      } catch {
-        Alert.alert('ত্রুটি', 'গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
-      } finally {
-        setLoadingCustomer(false);
-      }
-    })();
-    fetchTransactions(true);
-  }, [customerId]);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        try {
+          const data = await getCustomerDetail(customerId);
+          if (!cancelled) setCustomer(data as CustomerDetail);
+        } catch {
+          if (!cancelled) Alert.alert('ত্রুটি', 'গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
+        } finally {
+          if (!cancelled) setLoadingCustomer(false);
+        }
+      })();
+      fetchTransactions(true);
+      return () => { cancelled = true; };
+    }, [customerId, fetchTransactions])
+  );
 
   async function playVoiceTag() {
     if (!customer?.voice_tag_url) return;
@@ -58,8 +65,11 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
 
   function sendReminder() {
     if (!customer?.phone_number) return;
+    const customerName = customer.name || customer.fallback_label || '';
+    const greeting = customerName ? `প্রিয় ${customerName},\n` : '';
+    const shopLine = profile.shop_name ? `${profile.shop_name}-এ ` : '';
     const msg = encodeURIComponent(
-      `আপনার বাকি আছে ৳${formatAmount(customer.balance)}। অনুগ্রহ করে পরিশোধ করুন।`
+      `${greeting}${shopLine}আপনার বাকি আছে ৳${formatAmount(customer.balance)}। অনুগ্রহ করে যত দ্রুত সম্ভব পরিশোধ করুন। ধন্যবাদ।`
     );
     Linking.openURL(`https://wa.me/${customer.phone_number.replace('+', '')}?text=${msg}`);
   }
@@ -74,22 +84,28 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.avatarWrap} onPress={playVoiceTag} activeOpacity={customer?.voice_tag_url ? 0.7 : 1}>
-          {customer?.photo_url ? (
-            <Image source={{ uri: customer.photo_url }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarIcon}>👤</Text>
-            </View>
-          )}
+        <View style={styles.avatarWrap}>
+          <TouchableOpacity
+            onPress={() => customer?.photo_url && setPhotoViewerVisible(true)}
+            activeOpacity={customer?.photo_url ? 0.7 : 1}
+          >
+            {customer?.photo_url ? (
+              <Image source={{ uri: customer.photo_url }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarIcon}>👤</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           {customer?.voice_tag_url && (
-            <View style={styles.speakerBadge}>
+            <TouchableOpacity style={styles.speakerBadge} onPress={playVoiceTag} activeOpacity={0.7}>
               <Text style={{ fontSize: 14 }}>🔊</Text>
-            </View>
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
-        <Text style={styles.name}>{customer?.fallback_label ?? 'গ্রাহক'}</Text>
+        <Text style={styles.name}>{customer?.name || customer?.fallback_label || 'গ্রাহক'}</Text>
+        {customer?.address && <Text style={styles.address}>{customer.address}</Text>}
         {customer && <BalanceBadge balance={customer.balance} size="large" />}
 
         <View style={styles.actions}>
@@ -132,6 +148,18 @@ export default function CustomerDetailScreen({ navigation, route, profile }: Pro
           }
         />
       )}
+
+      <Modal visible={photoViewerVisible} transparent animationType="fade" onRequestClose={() => setPhotoViewerVisible(false)}>
+        <TouchableOpacity
+          style={styles.photoViewerBackdrop}
+          activeOpacity={1}
+          onPress={() => setPhotoViewerVisible(false)}
+        >
+          {customer?.photo_url && (
+            <Image source={{ uri: customer.photo_url }} style={styles.photoViewerImage} resizeMode="contain" />
+          )}
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -153,7 +181,7 @@ function TransactionRow({ item }: { item: Transaction }) {
         <Text style={[txStyles.amount, item.type === 'owes' ? txStyles.red : txStyles.green]}>
           {item.type === 'owes' ? '+' : '-'}৳{formatAmount(item.amount)}
         </Text>
-        <Text style={txStyles.date}>{relativeDate(item.created_at)}</Text>
+        <Text style={txStyles.date}>{formatDateTime(item.created_at)}</Text>
       </View>
       {item.voice_note_url && (
         <TouchableOpacity onPress={playVoice} activeOpacity={0.7}>
@@ -191,7 +219,8 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, right: 0,
     backgroundColor: '#E3F2FD', borderRadius: 12, padding: 4,
   },
-  name: { fontSize: 20, fontWeight: '500', color: '#1A1A1A', marginBottom: 10 },
+  name: { fontSize: 20, fontWeight: '500', color: '#1A1A1A', marginBottom: 2 },
+  address: { fontSize: 13, color: '#9E9E9E', marginBottom: 10, textAlign: 'center' },
   actions: { flexDirection: 'row', gap: 12, marginTop: 16, flexWrap: 'wrap', justifyContent: 'center' },
   actionButton: {
     borderRadius: 30, paddingVertical: 12, paddingHorizontal: 20,
@@ -202,6 +231,16 @@ const styles = StyleSheet.create({
   actionButtonText: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
   empty: { alignItems: 'center', paddingTop: 40 },
   emptyText: { fontSize: 15, color: '#757575' },
+  photoViewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoViewerImage: {
+    width: '100%',
+    height: '80%',
+  },
 });
 
 const txStyles = StyleSheet.create({

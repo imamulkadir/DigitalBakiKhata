@@ -7,6 +7,7 @@ export interface CustomerRow {
   photo_url: string | null;
   voice_tag_url: string | null;
   fallback_label: string | null;
+  name: string | null;
   balance: number;
 }
 
@@ -33,7 +34,7 @@ export default function CustomerListItem({ item, onPress }: Props) {
         ) : null}
       </View>
       <Text style={styles.label} numberOfLines={1}>
-        {item.fallback_label ?? 'গ্রাহক'}
+        {item.name || item.fallback_label || 'গ্রাহক'}
       </Text>
       <BalanceBadge balance={item.balance} />
     </TouchableOpacity>

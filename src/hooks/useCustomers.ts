@@ -12,7 +12,7 @@ export function useCustomers(ownerId: string) {
     setError(null);
     const { data, error: err } = await supabase
       .from('customer_balances')
-      .select('customer_id, photo_url, voice_tag_url, fallback_label, balance')
+      .select('customer_id, photo_url, voice_tag_url, fallback_label, name, balance')
       .eq('owner_id', ownerId)
       .order('balance', { ascending: false });
 
@@ -49,4 +49,13 @@ export async function getCustomerDetail(customerId: string) {
     .single();
   if (error) throw new Error('গ্রাহকের তথ্য লোড করতে সমস্যা হয়েছে');
   return data;
+}
+
+export async function updateCustomer(customerId: string, fields: {
+  name?: string;
+  address?: string;
+  phone_number?: string;
+}) {
+  const { error } = await supabase.from('customers').update(fields).eq('id', customerId);
+  if (error) throw new Error('গ্রাহকের তথ্য হালনাগাদ করতে সমস্যা হয়েছে');
 }
