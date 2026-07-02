@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ActivityIndicator, TextInput, FlatList,
+  TouchableOpacity, Alert,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import StatusPill from '../../components/StatusPill';
@@ -17,27 +18,65 @@ interface OwnerRow {
   status: string;
 }
 
-export default function AllOwnersTab() {
+interface Props {
+  adminToken: string;
+}
+
+export default function AllOwnersTab({ adminToken }: Props) {
   const { t } = useTranslation();
   const [owners, setOwners] = useState<OwnerRow[]>([]);
   const [filtered, setFiltered] = useState<OwnerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, phone_number, shop_name, subscription_status, next_due_date, created_at, status')
-        .eq('role', 'owner')
-        .order('created_at', { ascending: false });
-      const list = (data as OwnerRow[]) ?? [];
-      setOwners(list);
-      setFiltered(list);
-      setLoading(false);
-    })();
-  }, []);
+  async function fetchOwners() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, phone_number, shop_name, subscription_status, next_due_date, created_at, status')
+      .eq('role', 'owner')
+      .order('created_at', { ascending: false });
+    const list = (data as OwnerRow[]) ?? [];
+    setOwners(list);
+    setFiltered(list);
+    setLoading(false);
+  }
+
+  useEffect(() => { fetchOwners(); }, []);
+
+  function confirmDelete(owner: OwnerRow) {
+    Alert.alert(
+      t('admin.deleteConfirmTitle'),
+      t('admin.deleteConfirmMessage', { phone: owner.phone_number }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('admin.delete'), style: 'destructive', onPress: () => handleDelete(owner.id) },
+      ]
+    );
+  }
+
+  async function handleDelete(ownerId: string) {
+    setDeletingId(ownerId);
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-owner`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`,
+          'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+        },
+        body: JSON.stringify({ owner_id: ownerId }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      await fetchOwners();
+    } catch (e: any) {
+      Alert.alert(t('common.error'), e.message ?? t('admin.deleteError'));
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   useEffect(() => {
     if (!search) {
@@ -82,6 +121,18 @@ export default function AllOwnersTab() {
                 <Text style={styles.meta}>{t('admin.nextDue')}: {formatDate(item.next_due_date)}</Text>
               )}
             </View>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => confirmDelete(item)}
+              disabled={deletingId === item.id}
+              activeOpacity={0.7}
+            >
+              {deletingId === item.id ? (
+                <ActivityIndicator size="small" color="#D32F2F" />
+              ) : (
+                <Text style={styles.deleteBtnText}>{t('admin.delete')}</Text>
+              )}
+            </TouchableOpacity>
           </View>
         )}
         ListEmptyComponent={
@@ -111,6 +162,12 @@ const styles = StyleSheet.create({
   phone: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   shop: { fontSize: 13, color: '#757575', marginTop: 2 },
   meta: { fontSize: 12, color: '#9E9E9E' },
+  deleteBtn: {
+    marginTop: 10, alignSelf: 'flex-start',
+    paddingVertical: 6, paddingHorizontal: 12,
+    borderRadius: 8, borderWidth: 1, borderColor: '#D32F2F',
+  },
+  deleteBtnText: { fontSize: 13, color: '#D32F2F', fontWeight: '500' },
   empty: { alignItems: 'center', paddingTop: 40 },
   emptyText: { fontSize: 16, color: '#757575' },
 });

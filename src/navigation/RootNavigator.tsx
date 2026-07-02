@@ -70,7 +70,7 @@ export default function RootNavigator() {
       {!profile ? (
         <AuthStack onLogin={handleLogin} />
       ) : profile.role === 'super_admin' ? (
-        <AdminStack profile={profile} token={token!} onLogout={handleLogout} />
+        <AdminStack profile={profile} token={token!} onLogout={handleLogout} onProfileUpdate={handleProfileUpdate} />
       ) : (
         <OwnerStack profile={profile} onLogout={handleLogout} onProfileUpdate={handleProfileUpdate} />
       )}

@@ -48,56 +48,33 @@ serve(async (req) => {
       });
     }
 
-    const { title, content, duration_days } = await req.json();
-    if (!title?.trim() || !content?.trim()) {
-      return new Response(JSON.stringify({ error: 'শিরোনাম ও বিবরণ আবশ্যক' }), {
+    const { owner_id } = await req.json();
+    if (!owner_id) {
+      return new Response(JSON.stringify({ error: 'অবৈধ অনুরোধ' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // duration_days is optional — omitted/0 means no deadline (shows until
-    // manually stopped or deleted).
-    const expires_at = duration_days && duration_days > 0
-      ? new Date(Date.now() + duration_days * 24 * 60 * 60 * 1000).toISOString()
-      : null;
-
-    const { data: announcement, error: insertError } = await supabaseAdmin
-      .from('announcements')
-      .insert({ title: title.trim(), content: content.trim(), created_by: userId, expires_at })
+    // Only ever deletes role='owner' rows — never super_admin/staff — so this
+    // endpoint can't be used to lock out an admin or delete the wrong kind
+    // of account even if owner_id is wrong.
+    const { data: deleted, error: deleteError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', owner_id)
+      .eq('role', 'owner')
       .select()
       .single();
 
-    if (insertError) throw insertError;
-
-    const { data: owners } = await supabaseAdmin
-      .from('profiles')
-      .select('expo_push_token')
-      .eq('role', 'owner')
-      .eq('status', 'active')
-      .not('expo_push_token', 'is', null);
-
-    if (owners && owners.length > 0) {
-      const messages = owners
-        .filter((o) => o.expo_push_token)
-        .map((o) => ({
-          to: o.expo_push_token,
-          sound: 'default',
-          title: 'নতুন ঘোষণা',
-          body: title.trim(),
-        }));
-
-      if (messages.length > 0) {
-        await fetch('https://exp.host/--/api/v2/push/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(messages),
-        });
-      }
+    if (deleteError || !deleted) {
+      return new Response(JSON.stringify({ error: 'দোকানদার পাওয়া যায়নি' }), {
+        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(
-      JSON.stringify({ success: true, announcement }),
-      { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
     console.error(err);

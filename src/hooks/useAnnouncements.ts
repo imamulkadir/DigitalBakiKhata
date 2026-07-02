@@ -15,8 +15,15 @@ export function useAnnouncements(ownerId: string) {
 
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true);
+    // Only show announcements the admin hasn't stopped and that haven't
+    // passed their deadline (expires_at null means no deadline was set).
     const [{ data: rows }, { data: reads }] = await Promise.all([
-      supabase.from('announcements').select('id, title, content, created_at').order('created_at', { ascending: false }),
+      supabase
+        .from('announcements')
+        .select('id, title, content, created_at')
+        .eq('is_active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .order('created_at', { ascending: false }),
       supabase.from('announcement_reads').select('announcement_id').eq('owner_id', ownerId),
     ]);
     const readIds = new Set((reads ?? []).map((r) => r.announcement_id));
